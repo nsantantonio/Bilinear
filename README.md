@@ -1,11 +1,11 @@
 # Bilinear
 
-Fit bilinear models using AMMI or GGE and make 2D and 3D biplots.  Also tests for the number of significant dimensions of GxE using a parameteric bootstrap test method suggested by Forkman and Piepho (2014).
+Fit bilinear models using AMMI (Additive Main effects Multiplicative Interaction) or GGE/SREG (Genotype and Genotype by Environment /Sites REGression) and make 2D and 3D biplots.  Also tests for the number of significant dimensions of GxE using a parameteric bootstrap test method suggested by Forkman and Piepho (2014).
 
 See 'Bilinear examples.R' for a tutorial of use.  ```Bilinear vx.x.R``` contains the relevant functions, namely ```Bilinear()``` to fit model and ```BBplot()``` to plot 2D and 3D biplots.
 
 ### Plant Breeders Disclaimer
-It is this author's opinion that GGE type models are more difficult to interpret than AMMI, as the genotypic main effect will be present in one or more of the remaining dimensions of the residual matrix, but not necessarily the first (largest) dimension (e.g. when Var(GxE) > Var(G)).  Therefore, I recommend using AMMI type models, as both genotype and environment main effects are removed from the residuals before GxE effects are assessed.  GGE type models are provided as a freely available resource for those who want to use them. The ```decorateGGE``` option of BBplot will draw the mega-environment delineations suggested by Yan et al. (2000).
+It is this author's opinion that GGE type models are more difficult to interpret than AMMI type models, as the genotypic main effect will be present in one or more of the remaining dimensions of the residual matrix, but not necessarily the first (largest) dimension (e.g. when Var(GxE) > Var(G)).  Therefore, I recommend using AMMI type models, as both genotype and environment main effects are removed from the residuals before GxE effects are assessed.  However, GGE type models are provided here as a freely available resource for those who want to use them. The ```decorateGGE``` option of BBplot will draw the mega-environment delineations suggested by Yan et al. (2000).
 
 
 ## Known issues to be addressed
@@ -17,14 +17,14 @@ It is this author's opinion that GGE type models are more difficult to interpret
 * Flexibility to change point types, colors, etc. in ```BBplot()```. 
 
 ### Eventually R package to CRAN ?:
-If this author finds time to produce a more polished, flexible and tested program, it may be submitted to CRAN as an R package. Until then, please follow me here on github and send me a message, particularly if you decide to publish any results produced from this (NOT because I want authorship, I just want to know if it is being used, particularly for selections)
+If this author finds time to produce a more polished, flexible and tested program, it may be submitted to CRAN as an R package. Until then, please follow me here on github and send me a message, particularly if you decide to publish any results produced from this (NOT because I want authorship, I just want to know if and how it is being used, particularly for selections)
 
 
 ## References 
 ##### Bootstrap test
 - Forkman, J., & Piepho, H. P. (2014). Parametric bootstrap methods for testing multiplicative terms in GGE and AMMI models. Biometrics, 70(3), 639-647. 
 
-##### svd sign ambiguity (might not be relevant for centered matrices...)
+##### SVD sign ambiguity (might not be relevant for centered matrices...)
 - Bro, Rasmus, Evrim Acar, and Tamara G. Kolda. "Resolving the sign ambiguity in the singular value decomposition." Journal of Chemometrics 22, no. 2 (2008): 135-140.
 
 #### selected background
