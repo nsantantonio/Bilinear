@@ -10,11 +10,7 @@ It is this author's opinion that GGE type models are more difficult to interpret
 
 ## Known issues to be addressed
 
-* Need balanced data.  At this time, the program requires balanced data across genotypes and environments (i.e. all genotypes observed in all environments).  If just one or two cells are missing, you could impute the genotype effect + environment effect (i.e. no GxE) for that cell. The program will run with unequal replication within each location, but each genotype must be observed at least once in each environment, and unequal replication could result in erroneous estimates (the program should print a warning if there is unequal replication).  Eventually an EM algorithm might be implemented to account for unbalanced data as suggested by Gauch and Zorbel (1990).
-
-* SVD sign ambiguity. The sign of Genotype and Environment scores is not necessarily the sign of the effect.  Still working on a resolution.
- 
-* Flexibility to change point types, colors, etc. in ```BBplot()```. 
+* Need balanced data.  At this time, the program requires balanced data across genotypes and environments (i.e. all genotypes observed in all environments).  If just one or two cells are missing, you could impute the genotype effect + environment effect (i.e. no GxE) for that cell. The program will run with unequal replication within each location, but each genotype must be observed at least once in each environment, and unequal replication could result in erroneous estimates (the program should print a warning if there is unequal replication).  Eventually an EM algorithm might be implemented to account for unbalanced data as suggested by Gauch and Zorbel (1990). This will be implemented soon.
 
 ### Eventually R package to CRAN ?:
 If this author finds time to produce a more polished, flexible and tested program, it may be submitted to CRAN as an R package. Until then, please follow me here on github and send me a message, particularly if you decide to publish any results produced from this (NOT because I want authorship, I just want to know if and how it is being used, particularly for selections)
