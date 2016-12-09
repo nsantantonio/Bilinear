@@ -1,6 +1,6 @@
 # Bilinear
 
-Fit bilinear models using AMMI (Additive Main effects Multiplicative Interaction) or GGE/SREG (Genotype and Genotype by Environment /Sites REGression) and make 2D and 3D biplots.  Also tests for the number of significant dimensions of GxE using a parameteric bootstrap test method suggested by Forkman and Piepho (2014). An additional test for significant multiplicative terms, the F_<sub>R</sub> test from Piepho (1995), has been also been implemented in version 1.8.5.
+Fit bilinear models using AMMI (Additive Main effects Multiplicative Interaction) or GGE/SREG (Genotype and Genotype by Environment /Sites REGression) and make 2D and 3D biplots.  Also tests for the number of significant dimensions of GxE using a parameteric bootstrap test method suggested by Forkman and Piepho (2014). An additional test for significant multiplicative terms, the F<sub>R</sub> test from Piepho (1995), has been also been implemented in version 1.8.5.
 
 See 'Bilinear examples.R' for a tutorial of use.  ```Bilinear vx.x.R``` contains the relevant functions, namely ```Bilinear()``` to fit model and ```BBplot()``` to plot 2D and 3D biplots. With version 1.8.5, an additional funciton ```AMMIplot()```, can be used to produce linear and winner plots such as those in Gauch & Zobel (1997).
 
