@@ -15,6 +15,8 @@ It is this author's opinion that GGE type models are more difficult to interpret
 ### Eventually R package to CRAN ?:
 If this author finds time to produce a more polished, flexible and tested program, it may be submitted to CRAN as an R package. Until then, please follow me here on github and send me a message, particularly if you decide to publish any results produced from this (NOT because I want authorship, I just want to know if and how it is being used, particularly for selections)
 
+### Soy data
+The ```soy.Rdata``` included here is from Zobel, Wright and Gauch (1988) and is subset from the ```gauch.soy``` dataset included in the [```agridat``` package](https://github.com/kwstat/agridat). This was included to show the equivalence between using within environment means and raw data. 
 
 ## References 
 ##### Bootstrap test
