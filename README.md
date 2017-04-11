@@ -7,10 +7,19 @@ See 'Bilinear examples.R' for a tutorial of use.  ```Bilinear vx.x.R``` contains
 ### Plant Breeders Disclaimer
 It is this author's opinion that GGE type models are more difficult to interpret than AMMI type models, as the genotypic main effect will be present in one or more of the remaining dimensions of the residual matrix, but not necessarily the first (largest) dimension (e.g. when Var(GxE) > Var(G)).  Therefore, I recommend using AMMI type models, as both genotype and environment main effects are removed from the residuals before GxE effects are assessed.  However, GGE type models are provided here as a freely available resource for those who want to use them. The ```decorateGGE``` option of BBplot will draw the mega-environment delineations suggested by Yan et al. (2000).
 
+## Proceed with Caution
+This software is in development and bugs may (almost certainly) be present. I have tried to make the package flexible to different data inputs, but this leads to difficulties in testing all the possible ways one might try to input data. See known bugs below.
 
 ## Known issues to be addressed
 
-* Need balanced data.  At this time, the program requires balanced data across genotypes and environments (i.e. all genotypes observed in all environments).  If just one or two cells are missing, you could impute the genotype effect + environment effect (i.e. no GxE) for that cell. The program will run with unequal replication within each location, but each genotype must be observed at least once in each environment, and unequal replication could result in erroneous estimates (the program should print a warning if there is unequal replication).  Eventually an EM algorithm might be implemented to account for unbalanced data as suggested by Gauch and Zorbel (1990). This is planned to be implemented soon.
+* Need balanced data.  At this time, the program requires balanced data across genotypes and environments (i.e. all genotypes observed in all environments).  If just one or two cells are missing, you could impute the genotype effect + environment effect (i.e. no GxE) for that cell. The program will run with unequal replication within each location, but each genotype must be observed at least once in each environment, and unequal replication could result in erroneous estimates (the program should print a warning if there is unequal replication).  Eventually an EM algorithm might be implemented to account for unbalanced data as suggested by Gauch and Zorbel (1990). This is planned to be implemented soon. For unbalanced data, where each genotype is observed at least once in each environment, you could cetainly use a mixed model treating genotypes as random and estimate within environment blups.  
+
+#### Known bugs to be fixed for next release
+* genotype and environment names CANNOT be integers, and must contain at least one non-numeric character (it should also work if they are of class ```character```, but I have yet to test this)
+* the dataframe needs to be sorted by environment and then genotype in order to print the proper mean square values for the PCs. This does not effect the test, but it does make an erroneous Mean Square values for the PCs. 
+
+#### Known bugs (hopefully) to be fixed for next release 
+* There is an inconsistancy in the behavior of the winner plot of ```AMMIplot()``` with some data. I have not had the time to investigate this and do not know when I will get to it.
 
 ### Eventually R package to CRAN ?:
 If this author finds time to produce a more polished, flexible and tested program, it may be submitted to CRAN as an R package. Until then, please follow me here on github and send me a message, particularly if you decide to publish any results produced from this (NOT because I want authorship, I just want to know if and how it is being used, particularly for selections)
