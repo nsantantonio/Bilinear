@@ -1,3 +1,7 @@
+# Package formatting
+
+Bilinear is currently in the process of being formatted into proper package format and will hopefully be up before the end of the month.
+
 # Bilinear
 
 Fit bilinear models using AMMI (Additive Main effects Multiplicative Interaction) or GGE/SREG (Genotype and Genotype by Environment /Sites REGression) and make 2D and 3D biplots.  Also tests for the number of significant dimensions of GxE using a parameteric bootstrap test method suggested by Forkman and Piepho (2014). An additional test for significant multiplicative terms, the F<sub>R</sub> test from Piepho (1995), has been also been implemented in version 1.8.5.
