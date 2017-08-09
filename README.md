@@ -1,6 +1,6 @@
 # Package formatting
 
-Bilinear is currently in the process of being formatted into proper package format and will hopefully be up before the end of the month.
+Bilinear is currently in the process of being formatted into proper package format and will hopefully be up in the next wdeek or so. This branch contains all the old files that were here in case someone needs to access while I get the formal package together.
 
 # Bilinear
 
