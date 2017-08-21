@@ -1,0 +1,31 @@
+load("/Users/nsant/Google Drive/Bilinear/bilinearTest/data/onterio.RData")
+onterio
+ls()
+onterio <- Onterio
+save(onterio, "/Users/nsant/Google Drive/Bilinear/bilinearTest/data/onterio.RData")
+save(onterio, file = "/Users/nsant/Google Drive/Bilinear/bilinearTest/data/onterio.RData")
+save(onterio, file = "/Users/nsant/Google Drive/Bilinear/bilinearTestComp/data/onterio.RData")
+load("/Users/nsant/Google Drive/Bilinear/bilinearTest/data/onterio.RData")
+ls()
+load("/Users/nsant/Google Drive/Bilinear/bilinearTest/data/onterio.RData")
+load("/Users/santantonio/Google Drive/Bilinear/bilinear/data/soy.RData")
+ls()
+load("/Users/nsant/Google Drive/Bilinear/bilinear/data/soy.RData")
+ls()
+soy <- soyLong
+soyLong
+names(soyLong) <- c("G", "E", "y")
+soyMeansDf <- soyLong
+soyMeansDf
+soyMeansMat <- soyShort
+soyMeansMat
+load("/Users/nsant/Google Drive/Bilinear/bilinear/data/ontario.RData")
+load("/Users/nsant/Google Drive/Bilinear/bilinear/data/soy.RData")
+ls()
+ontario
+soy
+load("/Users/nsant/Google Drive/Bilinear/bilinear/data/soy.RData")
+class(soy)
+class(soyMeanDf)
+class(soyMeanMat)
+load("/Users/nsant/Google Drive/Bilinear/bilinear/data/soy.RData")
