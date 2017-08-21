@@ -1,8 +1,12 @@
 # Package formatting
 
-(August 21, 2017, eclipse edition)  This is the first formal R package for bilinear, version 0.1!  To install, first install devtools by entering an R environment and typing. 
+(August 21, 2017, eclipse edition)  This is the first formal R package for bilinear, version 0.1!  To install, first install ```devtools``` by entering an R environment and typing. 
 
 ```install.packages("devtools")```
+
+Load the devtools library with
+
+```library(devtools)```
 
 Then install bilinear by typing
 
