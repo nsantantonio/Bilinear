@@ -1,6 +1,6 @@
 #' AMMIplot function
 #'
-#' This function will make linear and winner plots from a bilinear() object like those in Gauch & Zobel (1997).
+#' This function will make linear and winner plots from a bilinear() object like Figure 2 and Figure 3 of Gauch & Zobel (1997).
 #'
 #' @param bilinearObject object from output of a call to biliner()
 #' @param plots character vector of maximum length 2 containing the names of the plots to be produced. Possible arguments are "linear" and "winner". If both are specified in a single call, both plots will be plotted to the same device
