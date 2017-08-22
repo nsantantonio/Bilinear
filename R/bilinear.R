@@ -28,9 +28,9 @@
 #' 
 #' y = mu + G_i + E_j + G*E_ij + e_ijk where mu is the grand mean, G_i is the effect of the ith genotype, E_j is the effect of the ith genotype, G*E_ij is the genotype by environment interaction term and e is the experimental error. The G*E_ij term can be thought of as a matrix of cell means (minus the main effects), and can be decomposed as sum(u_ik * d_k * v_jk) + r_ij for $k = 1,...,K$, using singular value decomposition where u_ik is the kth left singular value of the ith genotype, v_jk is the kth right singular value of the jth genotype and d_k is the kth singular value. r is sum(u_ik * d_k * v_jk) for k = K+1, ..., M where M is min(levels(G), levels(E)) - c for c equals 1 or 2 for GGE/SREG/EGE/GREG and AMMI respectively. The genotype and environmental scores are calculated as u_ik * (d_k)^f and v_jk * (d_k)^(1-f) respectively. 
 #' 
-#' "AMMI" specifies Additive Main Effects Multiplicative Interaction, where $y = \mu + G_i + E_j + \sum_{k = 1}^K u_{ik} * d_k * v_{jk}) + e$ for $k = 1,...,K$ significant multiplicative terms. 
-#' "GGE" or "SREG" specifies a Sites REGression or Genotype + Genotype by Environment interaction, where $y = \mu + E_j + \sum_{k = 1}^K u_{ik} * d_k * v_{jk}) + e$ for $k = 1,...,K$ significant multiplicative terms. 
-#' "EGE" or "GREG" specifies Genotype REGression or Environment + Genotype by Environment interaction,,$y = \mu + G_i + \sum_{k = 1}^K u_{ik} * d_k * v_{jk}) + e$ for $k = 1,...,K$ significant multiplicative terms. 
+#' "AMMI" specifies Additive Main Effects Multiplicative Interaction, where $y = mu + G_i + E_j + sum_{k = 1}^K u_{ik} * d_k * v_{jk}) + e$ for $k = 1,...,K$ significant multiplicative terms. 
+#' "GGE" or "SREG" specifies a Sites REGression or Genotype + Genotype by Environment interaction, where $y = mu + E_j + sum_{k = 1}^K u_{ik} * d_k * v_{jk}) + e$ for $k = 1,...,K$ significant multiplicative terms. 
+#' "EGE" or "GREG" specifies Genotype REGression or Environment + Genotype by Environment interaction,,$y = mu + G_i + sum_{k = 1}^K u_{ik} * d_k * v_{jk}) + e$ for $k = 1,...,K$ significant multiplicative terms. 
 #'
 #' For specifics see Zobel, R. W., Wright, M. J., & Gauch, H. G. (1988). Statistical analysis of a yield trial. Agronomy Journal, 80(3), 388-393.
 #' 

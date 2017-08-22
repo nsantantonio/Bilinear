@@ -21,7 +21,7 @@ AMMIplot(bilinearObject, plots = "linear", color = c("darkgreen",
 \item{pdf.filename}{name of pdf file to output.}
 }
 \description{
-This function will make linear and winner plots from a bilinear() object like those in Gauch & Zobel (1997).
+This function will make linear and winner plots from a bilinear() object like Figure 2 and Figure 3 of Gauch & Zobel (1997).
 }
 \details{
 Many arguments can be passed on to plot() through (...)
