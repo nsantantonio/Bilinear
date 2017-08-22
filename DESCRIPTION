@@ -1,4 +1,4 @@
-Package: bilinear
+Package: Bilinear
 Title: Fits bilinear models for multi environment trial data
 Version: 0.1.0
 Authors@R: person("Nicholas", "Santantonio", email = "ns722@cornell.edu", role = c("aut", "cre"))
