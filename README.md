@@ -1,6 +1,10 @@
+# Dont install, BUGS!!!!
+
+After experimenting, I have discovered several bugs that I am working to fix. Should be back in a day or two...
+
 # Package formatting
 
-(August 21, 2017, eclipse edition)  This is the first formal R package for bilinear, version 0.1!  To install, first install ```devtools``` by entering an R environment and typing. 
+(August 21, 2017, eclipse edition)  This is the first formal R package for ```bilinear```, version 0.1!  To install, first install ```devtools``` by entering an R environment and typing. 
 
 ```install.packages("devtools")```
 
@@ -12,6 +16,10 @@ Then install bilinear by typing
 
 ```install_github("nsantantonio/Bilinear")```
 
+You can now load the library as you would any other R package
+
+```library(Bilinear)```
+
 Do not download these files directly! Follow the installation instructions above.
 
 Note: previous "version" numbers starting with 1.x (1.6, 1.8) were simply collections of functions and are defunct. I will be continuing starting at 0.1, until I feel it is CRAN ready, at which point I will submit version 1 to CRAN.
@@ -21,7 +29,7 @@ Note: previous "version" numbers starting with 1.x (1.6, 1.8) were simply collec
 
 Fit bilinear models using AMMI (Additive Main effects Multiplicative Interaction) or GGE/SREG (Genotype and Genotype by Environment /Sites REGression) and make 2D and 3D biplots.  Also tests for the number of significant dimensions of GxE using a parameteric bootstrap test method suggested by Forkman and Piepho (2014). An additional test for significant multiplicative terms, the F<sub>R</sub> test from Piepho (1995), has been also been implemented in version 0.1.
 
-type ```?bilinear``` for some examples.  ```Bilinear``` version 0.1 contains the relevant functions, namely ```Bilinear()``` to fit model and run statistical tests for signficant dimensions, ```BBplot()``` to plot 2D and 3D biplots, and ```AMMIplot()``` to produce linear and winner plots for AMMI models such as those in Gauch & Zobel (1997).
+type ```?bilinear``` for some examples.  ```Bilinear``` version 0.1 contains the relevant functions, namely ```bilinear()``` to fit model and run statistical tests for signficant dimensions, ```BBplot()``` to plot 2D and 3D biplots, and ```AMMIplot()``` to produce linear and winner plots for AMMI models such as those in Gauch & Zobel (1997).
 
 ### Plant Breeders Disclaimer
 It is this author's opinion that GGE type models are more difficult to interpret than AMMI type models, as the genotypic main effect will be present in one or more of the remaining dimensions of the residual matrix, but not necessarily the first (largest) dimension (e.g. when Var(GxE) > Var(G)).  Therefore, I recommend using AMMI type models, as both genotype and environment main effects are removed from the residuals before GxE effects are assessed.  However, GGE type models are provided here as a freely available resource for those who want to use them. The ```decorateGGE``` option of BBplot will draw the mega-environment delineations suggested by Yan et al. (2000).

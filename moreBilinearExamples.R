@@ -1,7 +1,7 @@
 # Author: Nicholas Santantonio
 # Institution: Cornell University, Plant Breeding and Genetics
 
-library(bilinear) # load bilinear package
+library(Bilinear) # load bilinear package
 
 
 # Please review the dimension selection method suggested by Forkman and Piepho (2014)
@@ -10,7 +10,7 @@ library(bilinear) # load bilinear package
 # Forkman, J., & Piepho, H. P. (2014). Parametric bootstrap methods for testing multiplicative
 # 		terms in GGE and AMMI models. Biometrics, 70(3), 639-647. 
 
-# load example dataset
+# load example dataset from Zobel, R. W., Wright, M. J., & Gauch, H. G. (1988). Statistical analysis of a yield trial. Agronomy Journal, 80(3), 388-393.
 data(soy)
 print(soyMeanMat)
 
@@ -87,12 +87,12 @@ AMMIfit["svdE"]
 # Some model fit considerations #
 #################################
 
-# The number of bootstraps ('B' argument) can be reduced to say 10,000 to reduce run time.  
+# The number of bootstraps ('B' argument) can be reduced to say 1,000 to reduce run time.  
 # For more accurate P-values, higher bootstrap numbers are required. 
 # the authors suggest the number of bootstraps be on the order of 1 x 10^5
 # however, 1 x 10^4 or even 1 x 10^3 might be used if computation time becomes a significant problem 
 # this is unlikely to be an issue for typical numbers Genotypes and Environments, because it is limited by the smaller of the two.
-system.time(AMMIfit <- bilinear(x = soyMeanMat, B = 10000))
+system.time(AMMIfit <- bilinear(x = soyMeanMat, B = 1000))
 
 # use multiple cores ('nCore' argument) to reduce run time by approximately 1/min(nCore, J-1, I-1), where the GE matrix is of dimension IxJ 
 # this is limited by the number of CPUs your computer has (most computers have at least 2 these days),
@@ -110,7 +110,7 @@ system.time(AMMIfit <- bilinear(x = soyMeanMat, model = "AMMI", B = 10000, nCore
 
 # since the data is simply cell means and we have no way to calculate a within environment error term, 
 # 'Ftest' tests using a sequential F-test known to be too liberal, see below for F_R test for replicated data
-bilinear(soyMeanMat, test = "Ftest")
+bilinear(soyMeanMat, test = "Ftest")[c("pvalue", "sigPC")]
 
 ###################################
 # Raw Replicates and Missing Data # 
@@ -132,7 +132,7 @@ errorDf <- anova(soyfit)["Residuals", "Df"]
 reps <- unique(table(soy$G, soy$E))
 
 print(c(errorMeanSq, errorDf, reps))
-soyF2 <- bilinear(Y, errorMeanSqDfReps = c(errorMeanSq, errorDf, reps), test = "Ftest")
+soyF2 <- bilinear(soyMeanMat, errorMeanSqDfReps = c(errorMeanSq, errorDf, reps), test = "Ftest")
 
 
 # small example with no sig GxE
@@ -154,7 +154,7 @@ AMMIplot(AMMIfit, "winner")
 AMMIplot(AMMIfit, "winner", color = "hotpink")
 AMMIplot(AMMIfit, c("linear", "winner"), color = c("hotpink", "darkorchid"))
 
-
+dev.off()
 ##################################
 # Biplots of bilinear model fits #
 ##################################

@@ -85,7 +85,8 @@ decorateBBplot <- function(Gscores, Escores, Eeffect, axes.names, decorate = TRU
 		for (i in 1:length(intercepts)){
 			A <- cbind(c(-slopes[i], 1 / slopes[i]), 1)
 			b <- matrix(c(intercepts[i], 0), ncol = 1)
-			xy <- solve(crossprod(A) %*% crossprod(A, b))
+			# xy <- solve(crossprod(A) %*% crossprod(A, b))
+			xy<-solve(t(A) %*% A) %*% t(A) %*% b
 			y[i]<-xy[2]
 			x[i]<-xy[1]
 		}
