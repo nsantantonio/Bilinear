@@ -107,9 +107,10 @@
 #' bilinear(G = Gvec, E = Evec, y = yvec, model = "AMMI", alpha = 0.05, B = 10000, nCore = 2)
 #' @keywords AMMI, GGE, parametric bootstrap
 #' @export
-bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = TRUE, returnDataFrame = TRUE, override3col = FALSE, verbose, ...){
+bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE, override3col = FALSE, verbose, ...){
 # x = Y; f = 0.5; G = NULL; E = NULL; y = NULL; block = NULL; model = "AMMI"; test = "bootstrap"; errorMeanSqDfReps = NULL; alpha = 0.05; B = 10000; nCore = 2; Bonferroni = TRUE; returnDataFrame = TRUE; override3col = TRUE;
 # x = soy; verbose = 1
+# x <-  soy[!{soy$E %in% unique(soy$E)[1:5] & soy$block %in% unique(soy$block)[1:2]}, ]
 
 	if (!.Platform$OS.type %in% "unix" & nCore > 1){
 		nCore <- 1
@@ -178,12 +179,11 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	if (is.null(block) & "block" %in% names(dataReformatted[["DF"]])) block <- "block"
 	
 	if (!is.null(errorMeanSqDfReps)){
-		if (length(errorMeanSqDfReps) != 3) stop("Please provide a vector with error variance, error degrees of freedom and number of replications per genotype to the 'errorMeanSqDfReps' argument\n")
+		if (length(errorMeanSqDfReps) != 3) stop("Please provide a vector or list with error variance, error degrees of freedom and number of replications per genotype to the 'errorMeanSqDfReps' argument\n")
 		sigmasq <- errorMeanSqDfReps
 	} else {
 		sigmasq <- dataReformatted[["sigmasq"]]
 	}
-
 
 	if (verbose) {
 		cat("Displaying first (up to) 10 rows and columns of two way table of genotype within environment means:\n")
@@ -195,85 +195,48 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	Eeffect <- colMeans(Y, na.rm = TRUE) - mu
 	Geffect <- rowMeans(Y, na.rm = TRUE) - mu
 
+	if (verbose) cat("Data consists of", nrow(Y), "Genotypes evaluated in", ncol(Y), "Environments\n")
 	I <- nrow(Y) 
 	J <- ncol(Y) 
-	if (verbose) cat("Data consists of ", I, " Genotypes evaluated in ", J, " Environments\n")
-	
-	# fitBilinear <- (...){
 
-	if (model == "AMMI"){
-		LLt_I <- diag(I) - (1 / I) * matrix(1, I, I) 
-		LLt_J <- diag(J) - (1 / J) * matrix(1, J, J) 
-		M <- min(I - 1, J - 1)
-		D <- I - 1
-		Dtilde <- J - 1
-		Emat <- LLt_I %*% Y %*% LLt_J
-	} else if (model %in% c("GGE","SREG")){
-		LLt_I <- diag(I) - (1 / I) * matrix(1, I, I) 
-		M <- min(I - 1, J)
-		D <- I - 1 
-		Dtilde <- J
-		Emat <- LLt_I %*% Y
-	} else if (model %in% c("EGE","GREG")){
-		LLt_J <- diag(J) - (1 / J) * matrix(1, J, J) 
-		M <- min(I, J - 1)
-		D <- I
-		Dtilde <- J - 1
-		Emat <- Y %*% LLt_J
-	} else {
-		stop("'model' argument must be either 'AMMI', 'GGE', 'SREG', 'EGE',or 'GREG'!\nNote: 'GGE' and 'SREG' are equivalent, as are 'EGE' and 'GREG'.")
+	if(any(is.na(Y))){
+		emammi(Y, model = model, ...)
 	}
-
-	rownames(Emat)<-rownames(Y) 
-	colnames(Emat)<-colnames(Y) 
-	nu <- D * Dtilde
 	
-	Kmax <- M - 2
-	KmaxPlusOne <- Kmax + 1
-	A <- Y - Emat
+	decomp <- bdecomp(Y, model = model)
+	attach(decomp)
 
-	Edecomp <- svd(Emat)
-	Lambda <- Edecomp$d
+	Theta_k <- lapply(0:KmaxPlusOne, getTheta, Edecomp = Edecomp)
+	names(Theta_k) <- paste0("PC", 0:KmaxPlusOne)
 
-	Theta_k <- list(PC0 = matrix(0, I, J))
 	sigmasqGxE_k <- c(PC0 = 0)
 	sigmasqR_k <- c(PC0 = 1/nu * crossprod(Lambda[1:M]))
-
-	sigmasqGxE_k["PC1"] <- 1/nu * Lambda[1]^2 
-	sigmasqR_k["PC1"] <- 1/nu * crossprod(Lambda[2:M]) 
-	Theta_k[["PC1"]] <- Lambda[1] * tcrossprod(Edecomp$u[,1], Edecomp$v[,1])
-
-	if (KmaxPlusOne > 1){
-		for (k in 2:KmaxPlusOne){
-			sigmasqGxE_k[paste0("PC", k)] <- 1/nu * crossprod(Lambda[1:k])
-			sigmasqR_k[paste0("PC", k)] <- 1/nu * crossprod(Lambda[(k+1):M])
-			Theta_k[[paste0("PC", k)]] <- Edecomp$u[, 1:k] %*% tcrossprod(diag(Lambda[1:k]), Edecomp$v[, 1:k])
-		}
+	for (k in 1:KmaxPlusOne){
+		sigmasqGxE_k[paste0("PC", k)] <- 1/nu * crossprod(Lambda[1:k])
+		sigmasqR_k[paste0("PC", k)] <- 1/nu * crossprod(Lambda[(k+1):M])
 	}	
 
 	Theta_k <- lapply(Theta_k, function(x){rownames(x) <- rownames(Y); colnames(x) <- colnames(Y); return(x)})
 	nominal_k <- lapply(Theta_k, function(x) x + mu + Geffect )
+
  
 # F tests for significance
 
-	n <- mean(c(dataReformatted[["repPerG"]]))
+	r <- mean(c(dataReformatted[["repPerG"]]))
 	degfGxE <- c(I + J - (2 * 1:KmaxPlusOne))
 	if (model == "AMMI") degfGxE <- degfGxE - 1
 	degfR <- nu - cumsum(degfGxE)
  	
  	if (test == "Ftest"){
 	 	if (n == 1 & is.null(errorMeanSqDfReps)){
-	 		warning("The trial is unreplicated and no error variance was provided,
-so a sequential F test will be used to determine the number of significant terms.
-This method is known to be too liberal, and it is suggested that you use the bootstrap
-method to test for significant terms with the argument test = 'bootstrap'.\n")
+	 		warning("The trial is unreplicated and no error variance was provided, so a sequential F test will be used to determine the number of significant terms. This method is known to be too liberal, and it is suggested that you use the bootstrap method to test for significant terms with the argument test = 'bootstrap'.\n")
 	 		Ftest <- (Lambda[1:KmaxPlusOne]^2 / degfGxE)  / ((sigmasqR_k[2:M]) * nu / degfR) 
 	 		pvalue <- pf(Ftest, degfGxE, degfR, lower.tail = FALSE)
-	 	} else if (n > 1 | !is.null(errorMeanSqDfReps)){
+	 	} else if (r > 1 | !is.null(errorMeanSqDfReps)){
 			if (verbose) cat("Using F_R test method\n")
 			df1 <- (D - 0:KmaxPlusOne) * (Dtilde - 0:KmaxPlusOne)
 			df2 <- sigmasq[[2]]
-			reps <- if (n > 1) n else errorMeanSqDfReps[3]
+			reps <- if (r > 1) r else errorMeanSqDfReps[[3]]
 			
 			Ftest <- c(sigmasqR_k[1:M] * nu) / (df1 * (sigmasq[1] / reps))
 			pvalue <- pf(Ftest, df1, df2, lower.tail = FALSE)
@@ -291,8 +254,9 @@ method to test for significant terms with the argument test = 'bootstrap'.\n")
 				}
 			}
 		}
+	} else {
+		stop("Please provide either 'bootstrap' or 'Ftest' to test argument.")
 	}
-# browser()
 	if (Bonferroni){
 		if (test == "bootstrap" | (isUnRep & is.null(errorMeanSqDfReps))) alpha <- alpha / 1:KmaxPlusOne else alpha <- alpha / 1:M
 	}
@@ -301,8 +265,8 @@ method to test for significant terms with the argument test = 'bootstrap'.\n")
 	sig <- pvalue < alpha
 	Kstar <- if (all(sig)) length(sig) else min(which(!sig)) - 1
 
-	# cat("P-values of multiplicative terms: \n"); print(pvalue); cat("\n")
-	if (verbose) cat("Number of significant multiplicative terms (tested sequentially): ", Kstar, "\n")
+	testseq <- if (Bonferroni) " tested sequentially" else ""
+	if (verbose) cat(paste0("Number of significant multiplicative terms", testseq, ":"), Kstar, "\n")
 
 	if (nCore > 1){
 		PCs <- foreach(k = 1:M, .combine = cbind) %dopar% extractPC(k, UDV = Edecomp)
@@ -350,14 +314,15 @@ method to test for significant terms with the argument test = 'bootstrap'.\n")
 	R <- Y - A - Theta
 
 	addEffects <- list(mu = mu, Eeffect = Eeffect, Geffect = Geffect)
-	coeff.list <- list(Y = meltName(Y,"Y"),
-					   A = meltName(A,"A"), 
-					   ThetaPlusR = meltName(Emat,"ThetaPlusR"), 
-					   Theta = meltName(Theta,"Theta"), 
-					   R = meltName(R,"R"))
-	fitDF <- data.frame(Reduce(function(...) merge(..., by = c(E, G)), coeff.list), PCs)
-	
+
 	if (returnDataFrame){
+# moved inside returnDataFrame... should be ok.
+		coeff.list <- list(Y = meltName(Y,"Y"),
+						   A = meltName(A,"A"), 
+						   ThetaPlusR = meltName(Emat,"ThetaPlusR"), 
+						   Theta = meltName(Theta,"Theta"), 
+						   R = meltName(R,"R"))
+		fitDF <- data.frame(Reduce(function(...) merge(..., by = c(E, G)), coeff.list), PCs)
 		output <- list(DF = fitDF)
 	} else {
 		PClist <- sapply(colnames(PCs), function(x) NULL)
@@ -367,47 +332,100 @@ method to test for significant terms with the argument test = 'bootstrap'.\n")
 		output <- c(list(Y = Y, A = A, Theta = Theta, R = R), PClist)
 	}
 
-	forANOVA <- merge(dataReformatted[["DF"]], fitDF, all = TRUE, by = c(E, G))
-
+# this section needs cleaned up. 
 	if (isUnRep) nPCANOVA <- KmaxPlusOne else nPCANOVA <- M
-	modelStatement <- paste0(y, " ~ ", paste(c(E, G, colnames(PCs)[1:nPCANOVA]), collapse = " + "))
+	
+	blockStatement <- if (!is.null(dataReformatted[["blockSig"]])){
+		if (dataReformatted[["blockSig"]]) paste0(" + ", E, ":", block) else ""
+	} else {""}
 
-	if (!is.null(dataReformatted[["blockSig"]])){
-		if (dataReformatted[["blockSig"]])  modelStatement <- paste0(modelStatement, " + ", block, ":", E)
-	} 
-	ANOVA <- as.data.frame(anova(lm(as.formula(modelStatement), data = forANOVA))) # use qr here instead of lm???
-	names(ANOVA) <- c("Df", "SS", "MS", "Fval", "Pvalue")
+	modelStatement <- paste0(y, " ~ ", paste0(E, blockStatement, " + ", G, " + ", E, ":", G))
+	fit <- lm(as.formula(modelStatement), data = dataReformatted[["DF"]])
+
+	anovafit <- as.data.frame(anova(fit)) # use qr here instead of lm???
+	names(anovafit) <- c("Df", "SS", "MS", "testStatistic", "Pvalue")
 	anovaDf <- degfGxE
 	if (!dataReformatted[["isUnRep"]]) anovaDf <- c(anovaDf, tail(degfR, 1))
-	ANOVA[grep("PC", rownames(ANOVA)), "Df"] <- anovaDf
+
+	SS <- Lambda[1:M]^2
+	if(r > 1) SS <- SS * r
+	MS <- SS / anovaDf
 	PCpvalue <- pvalue
-	if (test == "bootstrap" & !isUnRep) PCpvalue <- c(PCpvalue, NA)
+	Tstat <- if (test == "Ftest") Ftest else pvalue * B
+	if (test == "bootstrap" & !isUnRep) {
+		PCpvalue <- c(PCpvalue, NA)
+		Tstat <- c(Tstat, NA)
+	}
+	names(PCpvalue) <- paste0("PC", 1:length(PCpvalue))
+	names(Tstat) <- paste0("PC", 1:length(Tstat))
+	# if(length(pvalue) < M) pvalue <- c(pvalue, rep(NA, M - length(pvalue)))
+	anovaPC <- data.frame(Df = anovaDf, SS = SS, MS = MS, testStatistic = Tstat, Pvalue = PCpvalue)
 
-	ANOVA[nrow(ANOVA), "Df"] <- nrow(forANOVA) - sum(ANOVA[1:(nrow(ANOVA) - 1),"Df"]) - 1
-
+	ANOVA <- rbind(anovafit[c(E, G, paste0(E, ":", block)),], anovaPC, anovafit["Residuals", ])
+	
 	if (!is.null(errorMeanSqDfReps)) rownames(ANOVA)[nrow(ANOVA)] <- paste0("PC", M)
 
 	
-	ANOVA[grep("PC", rownames(ANOVA)), "Pvalue"] <- PCpvalue
-	ANOVA[["MS"]] <- ANOVA[["SS"]] / ANOVA[["Df"]]
-	ANOVA <- ANOVA[c("Df", "SS", "MS", "Pvalue")]
-	if (!is.null(errorMeanSqDfReps)) ANOVA <- rbind(ANOVA, data.frame(Df = errorMeanSqDfReps[2], SS = prod(errorMeanSqDfReps[1:2]), MS = errorMeanSqDfReps[1], "Pvalue" = NA, row.names = "Residuals"))
+	# ANOVA[grep("PC", rownames(ANOVA)), "Pvalue"] <- PCpvalue
+	# ANOVA[["MS"]] <- ANOVA[["SS"]] / ANOVA[["Df"]]
+	# ANOVA <- ANOVA[c("Df", "SS", "MS", "Pvalue")]
+	if (!is.null(errorMeanSqDfReps)) ANOVA <- rbind(ANOVA, data.frame(Df = errorMeanSqDfReps[[2]], SS = prod(unlist(errorMeanSqDfReps[1:2])), MS = errorMeanSqDfReps[[1]], testStatistic = "", Pvalue = NA, row.names = "Residuals"))
 
 	ANOVA[[" "]] <- stars(ANOVA[["Pvalue"]])
 	
-	ANOVA[["Pvalue"]] <- sprintf("%e", ANOVA[["Pvalue"]])
-	ANOVA[ANOVA[["Pvalue"]] %in% "NA", "Pvalue"] <- NA
+	ANOVA[["Pvalue"]] <- sprintf("%e", ANOVA[["Pvalue"]]) # what do these lines do?
+	ANOVA[ANOVA[["Pvalue"]] %in% "NA", "Pvalue"] <- NA # what do these lines do?
 
 	ANOVA[as.numeric(ANOVA[["Pvalue"]]) %in% 0, "Pvalue"] <- paste0("< ", 1 / B)
 	ANOVA[is.na(ANOVA[["Pvalue"]]), "Pvalue"] <- ""
 
+	# X <- model.matrix(as.formula(modelStatement), data = dataReformatted[["DF"]])
+	# X <- cbind(X, matrix(1, reps))
+
+	# head(dataReformatted[["DF"]])
+
+#############
+	# forANOVA <- merge(dataReformatted[["DF"]], fitDF, all = TRUE, by = c(E, G))
+
+	# if (isUnRep) nPCANOVA <- KmaxPlusOne else nPCANOVA <- M
+	# modelStatement <- paste0(y, " ~ ", paste(c(E, G, colnames(PCs)[1:nPCANOVA]), collapse = " + "))
+
+	# if (!is.null(dataReformatted[["blockSig"]])){
+	# 	if (dataReformatted[["blockSig"]])  modelStatement <- paste0(modelStatement, " + ", block, ":", E)
+	# } 
+	# ANOVA <- as.data.frame(anova(lm(as.formula(modelStatement), data = forANOVA))) # use qr here instead of lm???
+	# names(ANOVA) <- c("Df", "SS", "MS", "Fval", "Pvalue")
+	# anovaDf <- degfGxE
+	# if (!dataReformatted[["isUnRep"]]) anovaDf <- c(anovaDf, tail(degfR, 1))
+	# ANOVA[grep("PC", rownames(ANOVA)), "Df"] <- anovaDf
+	# PCpvalue <- pvalue
+	# if (test == "bootstrap" & !isUnRep) PCpvalue <- c(PCpvalue, NA)
+
+	# ANOVA[nrow(ANOVA), "Df"] <- nrow(forANOVA) - sum(ANOVA[1:(nrow(ANOVA) - 1),"Df"]) - 1
+
+	# if (!is.null(errorMeanSqDfReps)) rownames(ANOVA)[nrow(ANOVA)] <- paste0("PC", M)
+
 	
+	# ANOVA[grep("PC", rownames(ANOVA)), "Pvalue"] <- PCpvalue
+	# ANOVA[["MS"]] <- ANOVA[["SS"]] / ANOVA[["Df"]]
+	# ANOVA <- ANOVA[c("Df", "SS", "MS", "Pvalue")]
+	# if (!is.null(errorMeanSqDfReps)) ANOVA <- rbind(ANOVA, data.frame(Df = errorMeanSqDfReps[[2]], SS = prod(unlist(errorMeanSqDfReps[1:2])), MS = errorMeanSqDfReps[[1]], "Pvalue" = NA, row.names = "Residuals"))
 
-	cat("Analysis of Variance Table\n", paste0("Response: ", y), "\n")
-	print(ANOVA)
-	cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05\n")
+	# ANOVA[[" "]] <- stars(ANOVA[["Pvalue"]])
+	
+	# ANOVA[["Pvalue"]] <- sprintf("%e", ANOVA[["Pvalue"]])
+	# ANOVA[ANOVA[["Pvalue"]] %in% "NA", "Pvalue"] <- NA
 
-	cat("Number of significant multiplicative terms (tested sequentially): ", Kstar, "\n")
+	# ANOVA[as.numeric(ANOVA[["Pvalue"]]) %in% 0, "Pvalue"] <- paste0("< ", 1 / B)
+	# ANOVA[is.na(ANOVA[["Pvalue"]]), "Pvalue"] <- ""
+#############
+
+	if(verbose) {
+		cat("Analysis of Variance Table\n", paste0("Response: ", y), "\n")
+		print(ANOVA)
+		cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05\n")
+		cat("Number of significant multiplicative terms (tested sequentially): ", Kstar, "\n")
+	}
 	options(contrasts = usrContr)
 	return(c(model = model, addEffects, list(ANOVA = ANOVA), output, list(pvalue = pvalue, sigPC = Kstar, scores = scores, varcomp = Sigmasq,
 	 		 degf = degf, svdE = Edecomp, rankTables = rankTables, nameRank = nameRank)))

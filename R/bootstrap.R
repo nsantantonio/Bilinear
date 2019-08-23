@@ -19,7 +19,7 @@
 	bootstrap <- function(K, D, Dtilde, Edecomp, B, bootMethod = "full", Theta_k = NULL, ...){
 		if(!bootMethod %in% c("full", "simple")) {stop("Please specify the parametric bootstrap method as 'full' or 'simple'.")}
 		
-		if(K == 1) cat("Using", bootMethod, "parametric bootstrap method\n")
+		if(K == 0) cat("Using", bootMethod, "parametric bootstrap method\n")
 
 		Lambda <- Edecomp$d
 		nu <- D * Dtilde
