@@ -1,6 +1,6 @@
 #' bootstrap function
 #'
-#' This function perfoms a bootstrap test on opne PC at a time inside bilinear(), for ease of parallelization. Not meant to be used by user.
+#' This function perfoms a bootstrap test on one PC at a time inside bilinear(), for ease of parallelization. Not meant to be used by user.
 #'
 #' @param K integer, kth eigenvalue
 #' @param D integer, Maximum right dimensions 
@@ -16,66 +16,70 @@
 #'
 #' @keywords parametric bootstrap
 #' @export
-	bootstrap <- function(K, D, Dtilde, Edecomp, B, bootMethod = "full", Theta_k = NULL, ...){
-		if(!bootMethod %in% c("full", "simple")) {stop("Please specify the parametric bootstrap method as 'full' or 'simple'.")}
-		
-		if(K == 0) cat("Using", bootMethod, "parametric bootstrap method\n")
+bootstrap <- function(K, D, Dtilde, Edecomp, B, bootMethod = "full", Theta_k = NULL, ...){
+	if(!bootMethod %in% c("full", "simple")) {stop("Please specify the parametric bootstrap method as 'full' or 'simple'.")}
+	
+	if(K == 0) cat("Using", bootMethod, "parametric bootstrap method\n")
 
-		Lambda <- Edecomp$d
-		nu <- D * Dtilde
-		
-		I <- nrow(Edecomp$u)
-		J <- nrow(Edecomp$v)
+	Lambda <- Edecomp$d
+	nu <- D * Dtilde
+	
+	I <- nrow(Edecomp$u)
+	J <- nrow(Edecomp$v)
+# if (verbose) cat("Data consists of ", I, " Genotypes evaluated in ", J, " Environments\n")
 
-		Kplus1 <- K + 1
-		Lambda_k <- Lambda[Kplus1:(M)]	
+	LLt_I <- diag(I) - (1 / I) * matrix(1, I, I) 
+	LLt_J <- diag(J) - (1 / J) * matrix(1, J, J) 
 
-		S <- crossprod(Lambda_k)
-		T <- c(Lambda[Kplus1]^2 / S)
+	Kplus1 <- K + 1
+	Lambda_k <- Lambda[Kplus1:(M)]	
 
-		if(bootMethod == "full"){
-			sigmasq_k <- 1/nu * S
-			if(is.null(Theta_k)){
-				if (K == 0){
-					Theta_K <- matrix(0, I, J)
-				} else if(K == 1){
-					Theta_K <- Lambda[1] * tcrossprod(Edecomp$u[,1], Edecomp$v[,1])
-				} else {
-					Theta_K <- Edecomp$u[, 1:K] %*% tcrossprod(diag(Lambda[1:K]), Edecomp$v[, 1:K])	
-				}
+	S <- crossprod(Lambda_k)
+	T <- c(Lambda[Kplus1]^2 / S)
+
+	if(bootMethod == "full"){
+		sigmasq_k <- 1/nu * S
+		if(is.null(Theta_k)){
+			if (K == 0){
+				Theta_K <- matrix(0, I, J)
+			} else if(K == 1){
+				Theta_K <- Lambda[1] * tcrossprod(Edecomp$u[,1], Edecomp$v[,1])
 			} else {
-				Theta_K <- Theta_k[[paste0("PC", k)]]
+				Theta_K <- Edecomp$u[, 1:K] %*% tcrossprod(diag(Lambda[1:K]), Edecomp$v[, 1:K])	
 			}
+		} else {
+			Theta_K <- Theta_k[[paste0("PC", k)]]
 		}
-
-		T_b <- matrix(NA,nrow = B, ncol = 1)
-		b <- 1
-
-		while(b <= B){
-			if(bootMethod == "full"){
-				Eb <- Theta_K + matrix(rnorm(I * J, sd = sqrt(sigmasq_k)), I, J)
-				if(model == "AMMI"){
-					Ehatb <- LLt_I %*% Eb %*% LLt_J 
-				} else if(model %in% c("GGE","SREG")){
-					Ehatb <- LLt_I %*% Eb 
-				} else if(model %in% c("EGE","GREG")){
-					Ehatb <- Eb %*% LLt_J 
-				} else {stop("unspecified model")}
-			} else {
-				Ehatb<-matrix(rnorm((D - K) * (Dtilde - K)),  nrow = (D - K), ncol = (Dtilde - K))
-			}
-			
-			Lambda_b <- svd(Ehatb)$d
-			
-			if(bootMethod == "full"){
-				T_b[b, 1] <- Lambda_b[Kplus1]^2 / crossprod(Lambda_b[Kplus1:(M)]) 
-			} else {
-				T_b[b, 1] <- Lambda_b[1]^2 / crossprod(Lambda_b) 
-			}
-			
-			b <- b + 1
-		}
-		
-		pvalue<-sum(T_b > T)/B
-		return(pvalue)
 	}
+
+	T_b <- matrix(NA,nrow = B, ncol = 1)
+	b <- 1
+
+	while(b <= B){
+		if(bootMethod == "full"){
+			Eb <- Theta_K + matrix(rnorm(I * J, sd = sqrt(sigmasq_k)), I, J)
+			if(model == "AMMI"){
+				Ehatb <- LLt_I %*% Eb %*% LLt_J 
+			} else if(model %in% c("GGE","SREG")){
+				Ehatb <- LLt_I %*% Eb 
+			} else if(model %in% c("EGE","GREG")){
+				Ehatb <- Eb %*% LLt_J 
+			} else {stop("unspecified model")}
+		} else {
+			Ehatb<-matrix(rnorm((D - K) * (Dtilde - K)),  nrow = (D - K), ncol = (Dtilde - K))
+		}
+		
+		Lambda_b <- svd(Ehatb)$d
+		
+		if(bootMethod == "full"){
+			T_b[b, 1] <- Lambda_b[Kplus1]^2 / crossprod(Lambda_b[Kplus1:(M)]) 
+		} else {
+			T_b[b, 1] <- Lambda_b[1]^2 / crossprod(Lambda_b) 
+		}
+		
+		b <- b + 1
+	}
+	
+	pvalue<-sum(T_b > T)/B
+	return(pvalue)
+}

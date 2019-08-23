@@ -113,17 +113,7 @@ for the 'block' effect.\n"
 		if (length(nReps) > 1){
 			cat(warnunbal)
 			if (any(repGE == 0)){
-				stop("As of now this program cannot handle missing cells in the genotype environment table. 
-Please provide a dataset with all genotypes observedin all environments. 
-An EM algorithm is planned to be implemented for this purpose and will be released in a later version.")
-				 # cat(warnMissingCells)
-				# anyMissCells <- which(repGE == 0, arr.ind = TRUE)
-				# DFmu <- aggregate(as.formula(paste0(y," ~ ", E, " + ", G)), FUN = mean, data = DF)
-				# Y <- acast(DFmu,as.formula(paste0(G, " ~ ", E)), value.var = y)
-				# mu <- mean(Y, na.rm = TRUE)
-				# Gmu <- rowMeans(Y, na.rm = TRUE) - mu
-				# Emu <- colMeans(Y, na.rm = TRUE) - mu
-				# GEmu <- Gmu
+				cat("This program now handles missing cells in the genotype environment table! An EM algorithm will be used to impute missing cells\n")
 			}
 		} 
 
