@@ -4,8 +4,8 @@
 \alias{bootstrap}
 \title{bootstrap function}
 \usage{
-bootstrap(K, D, Dtilde, Edecomp, B, bootMethod = "full", Theta_k = NULL,
-  ...)
+bootstrap(K, D, Dtilde, Edecomp, B, bootMethod = "full",
+  Theta_k = NULL, ...)
 }
 \arguments{
 \item{K}{integer, kth eigenvalue}
@@ -24,7 +24,7 @@ bootstrap(K, D, Dtilde, Edecomp, B, bootMethod = "full", Theta_k = NULL,
 p-values for 1 to K principal components
 }
 \description{
-This function perfoms a bootstrap test on opne PC at a time inside bilinear(), for ease of parallelization. Not meant to be used by user.
+This function perfoms a bootstrap test on one PC at a time inside bilinear(), for ease of parallelization. Not meant to be used by user.
 }
 \details{
 Performs bootstrap test of significance by returning the proportion of time the bootstrap test statistic exceeds the 

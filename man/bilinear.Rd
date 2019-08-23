@@ -5,9 +5,10 @@
 \title{bilinear function}
 \usage{
 bilinear(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL,
-  model = "AMMI", errorMeanSqDfReps = NULL, f = 0.5, test = "bootstrap",
-  imputePC = "sig", alpha = 0.05, B = 10000, nCore = 1,
-  Bonferroni = TRUE, returnDataFrame = TRUE, override3col = FALSE, ...)
+  model = "AMMI", errorMeanSqDfReps = NULL, f = 0.5,
+  test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 10000,
+  nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE,
+  override3col = FALSE, verbose, ...)
 }
 \arguments{
 \item{x}{matrix or data.frame containing numeric values of cell means with genotypes on rows and environments on columns (e.g. ith genotype within jth environment). 
@@ -42,6 +43,8 @@ Alternatively a data.frame can be provided in long format, with factor and value
 \item{returnDataFrame}{logical. Should a data frame of the resulting model fit be returned? Default is TRUE}
 
 \item{override3col}{logical. Overrides the 3 column numeric warning when a matrix of 3 coulmns is provided. Most users will not need to turn this off, unless the number of environments is 3 and a table of cell means are provided. Default is FALSE.}
+
+\item{verbose}{logical. When TRUE, details from nalysis are printed.}
 }
 \value{
 The bilinear fit object and tests for significant dimensions.
