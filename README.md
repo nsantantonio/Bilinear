@@ -2,6 +2,8 @@
 
 # v0.2 release
 
+The new release allows for missing data to be imputed with an EM algorithm within ```bilinear()```. I have fixed a few other issues, and will continue to update and fix any bugs that arise. Please post issues to the issue board here on [this github page](https://github.com/nsantantonio/Bilinear/issues) any issues. I will get to them as soon as I can.
+
 # Package formatting
 
 <!-- (August 21, 2017, eclipse edition)  This is the first formal R package for ```bilinear```, version 0.1!  To install, first install ```devtools``` by entering an R environment and typing.  -->
@@ -24,7 +26,7 @@ You can now load the library as you would any other R package
 
 I highly reccomend that you do not download these files directly! Follow the installation instructions above.
 
-# Microsoft R open
+### Microsoft R open
 
 I have had issues using devtools with Microsoft R open <https://mran.microsoft.com/open>. I have supplied a source tarball, ```Bilinear_0.2.0.tar.gz``` for those who use MRAN. You can also just clone the repo and build on your own machine. 
 
@@ -32,8 +34,8 @@ I have had issues using devtools with Microsoft R open <https://mran.microsoft.c
 ```R CMD build Bilinear```
 ```R CMD INSTALL Bilinear```
 
-# Missing cells now allowed!
-Missing genotype/environment combinations are now allowed, and are imputed with an expectation maximization algorithm within ```bilinear()```. There is also functionality to allow the user to determine the accuracy of imputation, using the ```em()``` function (although this function is not required to be called by the user under typical circumstances).
+# Missing cells are now allowed!
+Missing genotype/environment combinations are now allowed, and are imputed with an expectation maximization algorithm within ```bilinear()```. There is also functionality to allow the user to determine the accuracy of imputation, using the ```em()``` function (although this function is not required to be called by the user under typical circumstances). While I have imposed no limit on the degree of missingness, I would suggest avoiding data sets with poor interconnectivity (i.e. poor overlap of genotype/environment information). An extreme example would be one set of lines evaluated in one set of environments and another set of genotypes evaluated in another set of environments put together and connected with missing values. 
 
 # ```Bilinear```
 
