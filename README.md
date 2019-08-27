@@ -2,7 +2,7 @@
 
 # v0.2 release
 
-The new release allows for missing data to be imputed with an EM algorithm within ```bilinear()```. I have fixed a few other issues, and will continue to update and fix any bugs that arise. Please post issues to the issue board here on [this github page](https://github.com/nsantantonio/Bilinear/issues) any issues. I will get to them as soon as I can.
+The new release allows for missing data to be imputed with an EM algorithm within ```bilinear()```. I have fixed a few other issues, and will continue to update and fix any bugs that arise. Please post issues to the issue board here on [this github page](https://github.com/nsantantonio/Bilinear/issues). I will get to them as soon as I can.
 
 # Package formatting
 
