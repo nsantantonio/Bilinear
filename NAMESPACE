@@ -2,7 +2,10 @@
 
 export(AMMIplot)
 export(BBplot)
+export(bdecomp)
 export(bilinear)
 export(bootstrap)
 export(dataFormat)
 export(decorateBBplot)
+export(em)
+export(getTheta)
