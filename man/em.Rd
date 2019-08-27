@@ -5,7 +5,7 @@
 \title{Expectation maximization algorithm to impute missing GxE cells}
 \usage{
 em(Y, model, tol = 0.001, maxiter = 100, k = NULL, fast = TRUE,
-  Ytrue = NULL, plotMSE = FALSE, verbose = FALSE)
+  Ytrue = NULL, plotMSE = FALSE, verbose = FALSE, ...)
 }
 \arguments{
 \item{Y}{matrix containing numeric values of cell means with genotypes on rows and environments on columns}

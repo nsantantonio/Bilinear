@@ -36,8 +36,9 @@
 #' em(Y, model = "AMMI", tol = 1e-5, k = 2, maxiter = 20, Ytrue = Ytrue, plotMSE = TRUE)
 #' em(Y, model = "AMMI", tol = 1e-5, fast = FALSE, maxiter = 20, Ytrue = Ytrue, plotMSE = TRUE)
 #' em(Y, model = "AMMI", tol = 1e-5, fast = 2, maxiter = 20, Ytrue = Ytrue, plotMSE = TRUE)
+#' @export
 
-em <- function(Y, model, tol = 1e-3, maxiter = 100, k = NULL, fast = TRUE, Ytrue = NULL, plotMSE = FALSE, verbose = FALSE){
+em <- function(Y, model, tol = 1e-3, maxiter = 100, k = NULL, fast = TRUE, Ytrue = NULL, plotMSE = FALSE, verbose = FALSE, ...){
 	if(!identical(dim(Ytrue), dim(Ytrue))) stop("To evaluate imputation accuracy using mean square error, please provide a Ytrue of same dimensions as Y.")
 	mu <- c("(Intercept)" = mean(Y, na.rm = TRUE))
 	Eeffect <- colMeans(Y, na.rm = TRUE) - mu

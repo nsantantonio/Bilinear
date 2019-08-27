@@ -16,6 +16,7 @@
 #' @examples
 #' data(soy)
 #' bdecomp(soyMeansMat, "AMMI")
+#' @export
 
 bdecomp <- function(Y, model) {
 

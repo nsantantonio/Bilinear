@@ -14,6 +14,8 @@
 #' Edecomp <- bdecomp(soyMeansMat, "AMMI")
 #' getTheta(Edecomp, 2)
 #'
+#' @export
+
 getTheta <- function(k, Edecomp){
 	I <- nrow(Edecomp$u)
 	J <- nrow(Edecomp$v)
