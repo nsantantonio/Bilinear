@@ -129,19 +129,6 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	
 	if (length(listOfPackages)) lapply(listOfPackages, require, character.only = TRUE)
 
-	# if (nCore > 1) registerDoMC(cores = nCore)
-	
-
-	# list.of.packages <- c("reshape2","foreach", "doMC")
-	# new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-	# if (length(new.packages)) {install.packages(new.packages)}
-	
-	# packages.required<-c(TRUE, TRUE, nCore > 1)
-	
-	# lapply(list.of.packages[packages.required], require, character.only = TRUE)
-
-	# if (nCore > 1) {registerDoMC(cores = nCore)}
-
 	usrContr <- options("contrasts")[[1]]
 	options(contrasts = c("contr.sum", "contr.sum"))
 	
@@ -218,9 +205,6 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 
 	Theta_k <- lapply(Theta_k, function(x){rownames(x) <- rownames(Y); colnames(x) <- colnames(Y); return(x)})
 	nominal_k <- lapply(Theta_k, function(x) x + mu + Geffect )
-
- 
-# F tests for significance
 
 	r <- mean(c(dataReformatted[["repPerG"]]))
 	degfGxE <- c(I + J - (2 * 1:KmaxPlusOne))
@@ -316,7 +300,6 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	addEffects <- list(mu = mu, Eeffect = Eeffect, Geffect = Geffect)
 
 	if (returnDataFrame){
-# moved inside returnDataFrame... should be ok.
 		coeff.list <- list(Y = meltName(Y,"Y"),
 						   A = meltName(A,"A"), 
 						   ThetaPlusR = meltName(Emat,"ThetaPlusR"), 
@@ -332,7 +315,6 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 		output <- c(list(Y = Y, A = A, Theta = Theta, R = R), PClist)
 	}
 
-# this section needs cleaned up. 
 	if (isUnRep) nPCANOVA <- KmaxPlusOne else nPCANOVA <- M
 	
 	blockStatement <- if (!is.null(dataReformatted[["blockSig"]])){
@@ -342,7 +324,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	modelStatement <- paste0(y, " ~ ", paste0(E, blockStatement, " + ", G, " + ", E, ":", G))
 	fit <- lm(as.formula(modelStatement), data = dataReformatted[["DF"]])
 
-	anovafit <- as.data.frame(anova(fit)) # use qr here instead of lm???
+	anovafit <- as.data.frame(anova(fit)) 
 	names(anovafit) <- c("Df", "SS", "MS", "testStatistic", "Pvalue")
 	anovaDf <- degfGxE
 	if (!dataReformatted[["isUnRep"]]) anovaDf <- c(anovaDf, tail(degfR, 1))
@@ -358,67 +340,19 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	}
 	names(PCpvalue) <- paste0("PC", 1:length(PCpvalue))
 	names(Tstat) <- paste0("PC", 1:length(Tstat))
-	# if(length(pvalue) < M) pvalue <- c(pvalue, rep(NA, M - length(pvalue)))
 	anovaPC <- data.frame(Df = anovaDf, SS = SS, MS = MS, testStatistic = Tstat, Pvalue = PCpvalue)
-
 	ANOVA <- rbind(anovafit[c(E, G, paste0(E, ":", block)),], anovaPC, anovafit["Residuals", ])
-	
-	if (!is.null(errorMeanSqDfReps)) rownames(ANOVA)[nrow(ANOVA)] <- paste0("PC", M)
 
-	
-	# ANOVA[grep("PC", rownames(ANOVA)), "Pvalue"] <- PCpvalue
-	# ANOVA[["MS"]] <- ANOVA[["SS"]] / ANOVA[["Df"]]
-	# ANOVA <- ANOVA[c("Df", "SS", "MS", "Pvalue")]
+	if (!is.null(errorMeanSqDfReps)) rownames(ANOVA)[nrow(ANOVA)] <- paste0("PC", M)
 	if (!is.null(errorMeanSqDfReps)) ANOVA <- rbind(ANOVA, data.frame(Df = errorMeanSqDfReps[[2]], SS = prod(unlist(errorMeanSqDfReps[1:2])), MS = errorMeanSqDfReps[[1]], testStatistic = "", Pvalue = NA, row.names = "Residuals"))
 
 	ANOVA[[" "]] <- stars(ANOVA[["Pvalue"]])
 	
-	ANOVA[["Pvalue"]] <- sprintf("%e", ANOVA[["Pvalue"]]) # what do these lines do?
-	ANOVA[ANOVA[["Pvalue"]] %in% "NA", "Pvalue"] <- NA # what do these lines do?
+	ANOVA[["Pvalue"]] <- sprintf("%e", ANOVA[["Pvalue"]]) 
+	ANOVA[ANOVA[["Pvalue"]] %in% "NA", "Pvalue"] <- NA 
 
 	ANOVA[as.numeric(ANOVA[["Pvalue"]]) %in% 0, "Pvalue"] <- paste0("< ", 1 / B)
 	ANOVA[is.na(ANOVA[["Pvalue"]]), "Pvalue"] <- ""
-
-	# X <- model.matrix(as.formula(modelStatement), data = dataReformatted[["DF"]])
-	# X <- cbind(X, matrix(1, reps))
-
-	# head(dataReformatted[["DF"]])
-
-#############
-	# forANOVA <- merge(dataReformatted[["DF"]], fitDF, all = TRUE, by = c(E, G))
-
-	# if (isUnRep) nPCANOVA <- KmaxPlusOne else nPCANOVA <- M
-	# modelStatement <- paste0(y, " ~ ", paste(c(E, G, colnames(PCs)[1:nPCANOVA]), collapse = " + "))
-
-	# if (!is.null(dataReformatted[["blockSig"]])){
-	# 	if (dataReformatted[["blockSig"]])  modelStatement <- paste0(modelStatement, " + ", block, ":", E)
-	# } 
-	# ANOVA <- as.data.frame(anova(lm(as.formula(modelStatement), data = forANOVA))) # use qr here instead of lm???
-	# names(ANOVA) <- c("Df", "SS", "MS", "Fval", "Pvalue")
-	# anovaDf <- degfGxE
-	# if (!dataReformatted[["isUnRep"]]) anovaDf <- c(anovaDf, tail(degfR, 1))
-	# ANOVA[grep("PC", rownames(ANOVA)), "Df"] <- anovaDf
-	# PCpvalue <- pvalue
-	# if (test == "bootstrap" & !isUnRep) PCpvalue <- c(PCpvalue, NA)
-
-	# ANOVA[nrow(ANOVA), "Df"] <- nrow(forANOVA) - sum(ANOVA[1:(nrow(ANOVA) - 1),"Df"]) - 1
-
-	# if (!is.null(errorMeanSqDfReps)) rownames(ANOVA)[nrow(ANOVA)] <- paste0("PC", M)
-
-	
-	# ANOVA[grep("PC", rownames(ANOVA)), "Pvalue"] <- PCpvalue
-	# ANOVA[["MS"]] <- ANOVA[["SS"]] / ANOVA[["Df"]]
-	# ANOVA <- ANOVA[c("Df", "SS", "MS", "Pvalue")]
-	# if (!is.null(errorMeanSqDfReps)) ANOVA <- rbind(ANOVA, data.frame(Df = errorMeanSqDfReps[[2]], SS = prod(unlist(errorMeanSqDfReps[1:2])), MS = errorMeanSqDfReps[[1]], "Pvalue" = NA, row.names = "Residuals"))
-
-	# ANOVA[[" "]] <- stars(ANOVA[["Pvalue"]])
-	
-	# ANOVA[["Pvalue"]] <- sprintf("%e", ANOVA[["Pvalue"]])
-	# ANOVA[ANOVA[["Pvalue"]] %in% "NA", "Pvalue"] <- NA
-
-	# ANOVA[as.numeric(ANOVA[["Pvalue"]]) %in% 0, "Pvalue"] <- paste0("< ", 1 / B)
-	# ANOVA[is.na(ANOVA[["Pvalue"]]), "Pvalue"] <- ""
-#############
 
 	if(verbose) {
 		cat("Analysis of Variance Table\n", paste0("Response: ", y), "\n")
