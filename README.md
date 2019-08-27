@@ -1,8 +1,12 @@
 # ```Bilinear``` package for fitting bilinear models (AMMI, GGE, etc.)
 
+# v0.2 release
+
 # Package formatting
 
-(August 21, 2017, eclipse edition)  This is the first formal R package for ```bilinear```, version 0.1!  To install, first install ```devtools``` by entering an R environment and typing. 
+<!-- (August 21, 2017, eclipse edition)  This is the first formal R package for ```bilinear```, version 0.1!  To install, first install ```devtools``` by entering an R environment and typing.  -->
+
+To install, first install ```devtools``` by entering an R environment and typing.  
 
 ```install.packages("devtools")```
 
@@ -18,10 +22,18 @@ You can now load the library as you would any other R package
 
 ```library(Bilinear)```
 
-I Highly reccomend that you do not download these files directly! Follow the installation instructions above.
+I highly reccomend that you do not download these files directly! Follow the installation instructions above.
+
+# Microsoft R open
+
+I have had issues using devtools with Microsoft R open <https://mran.microsoft.com/open>. I have supplied a source tarball, ```Bilinear_0.2.0.tar.gz``` for those who use MRAN. You can also just clone the repo and build on your own machine. 
+
+```git clone https://github.com/nsantantonio/Bilinear```
+```R CMD build Bilinear```
+```R CMD INSTALL Bilinear```
 
 # Missing cells now allowed!
-Missing genotype/environment combinations are now allowed, and are imputed with an expectation maximization algorithm within ```bilinear()```. There is also functionality to allow the user to determine the accuracy of imputation, using the ```em()``` function (although this function is not required to be called by the user under circumstances).
+Missing genotype/environment combinations are now allowed, and are imputed with an expectation maximization algorithm within ```bilinear()```. There is also functionality to allow the user to determine the accuracy of imputation, using the ```em()``` function (although this function is not required to be called by the user under typical circumstances).
 
 # ```Bilinear```
 
@@ -53,13 +65,9 @@ This software is in development and bugs may (almost certainly) be present. I ha
 
 <!-- * Need balanced data.  At this time, the program requires balanced data across genotypes and environments (i.e. all genotypes observed in all environments).  If just one or two cells are missing, you could impute the genotype effect + environment effect (i.e. no GxE) for that cell. The program will run with unequal replication within each location, but each genotype must be observed at least once in each environment, and unequal replication could result in erroneous estimates (the program should print a warning if there is unequal replication).  Eventually an EM algorithm might be implemented to account for unbalanced data as suggested by Gauch and Zorbel (1990). This is planned to be implemented soon. For unbalanced data, where each genotype is observed at least once in each environment, you could cetainly use a mixed model treating genotypes as random and estimate within environment blups.   -->
 
-#### Known bugs to be fixed  release
-
-#### Known bugs (hopefully) to be fixed for next release 
-
-### Eventually R package to CRAN ?:
+<!-- ### Eventually R package to CRAN ?:
 When I find time to produce a slightly more polished, flexible and tested program, it may be submitted to CRAN as an R package. 
-
+ -->
 ### Soy data
 The ```soy.Rdata``` included here is from Zobel, Wright and Gauch (1988) and is subset from the ```gauch.soy``` dataset included in the [```agridat``` package](https://github.com/kwstat/agridat). This was included to show the equivalence between using within environment means and raw data. 
 ### Ontario data
