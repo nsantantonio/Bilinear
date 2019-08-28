@@ -16,7 +16,7 @@
 #'
 #' @keywords parametric bootstrap
 #' @export
-bootstrap <- function(K, D, Dtilde, Edecomp, B, bootMethod = "full", Theta_k = NULL, ...){
+bootstrap <- function(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full", Theta_k = NULL, ...){
 	if(!bootMethod %in% c("full", "simple")) {stop("Please specify the parametric bootstrap method as 'full' or 'simple'.")}
 	
 	if(K == 0) cat("Using", bootMethod, "parametric bootstrap method\n")

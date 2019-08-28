@@ -108,9 +108,12 @@
 #' @keywords AMMI, GGE, parametric bootstrap
 #' @export
 bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE, override3col = FALSE, verbose = TRUE, ...){
-# x = soyMeanMat; f = 0.5; G = NULL; E = NULL; y = NULL; block = NULL; model = "AMMI"; test = "bootstrap"; errorMeanSqDfReps = NULL; alpha = 0.05; B = 10000; nCore = 2; Bonferroni = TRUE; returnDataFrame = TRUE; override3col = TRUE;
-# x = soy; verbose = 1
+# x = soyMeanMat; f = 0.5; G = NULL; E = NULL; y = NULL; block = NULL; model = "AMMI"; test = "Ftest"; errorMeanSqDfReps = NULL; alpha = 0.05; B = 10000; nCore = 2; Bonferroni = TRUE; returnDataFrame = TRUE; override3col = TRUE; verbose = TRUE;
+# x = soy;
+# x = soyMeanDf;
 # x <-  soy[!{soy$E %in% unique(soy$E)[1:5] & soy$block %in% unique(soy$block)[1:2]}, ]
+# x <- soy[!{soy$E %in% unique(soy$E)[1:5] & soy$G %in% unique(soy$G)[1:2]}, ]
+# x <- soyMeanDf[!{soyMeanDf$E %in% unique(soyMeanDf$E)[1:5] & soyMeanDf$G %in% unique(soyMeanDf$G)[1:2]}, ]
 # sapply(list.files("R"), function(x) source(paste0("R/", x)))
 	if (!.Platform$OS.type %in% "unix" & nCore > 1){
 		nCore <- 1
@@ -123,7 +126,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	new_packages <- listOfPackages[!(listOfPackages %in% installed.packages()[, "Package"])]
 
 	if (length(new_packages)){
-		cat("To use 'nCore' > 1, please install the 'foreach' package, along your favorite parallel backend that uses 'foreach' (e.g. doMC), load the library and set the number of desired cores \n Continuing with nCore = 1\n")	
+		cat("To use 'nCore' > 1, please install the 'foreach' package, along your favorite parallel backend that uses 'foreach' (e.g. doMC), load the library and set the number of desired cores (e.g. registerDoMC(nCores)) \n Continuing with nCore = 1\n")	
 		nCore <- 1
 	}
 	
@@ -132,9 +135,9 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	usrContr <- options("contrasts")[[1]]
 	options(contrasts = c("contr.sum", "contr.sum"))
 	
-	meltName <- function(x, vName) {
-		melted <- data.frame(G = rep(rownames(x), ncol(x)), E = rep(colnames(x), each = nrow(x)))
-		melted[vName] <- c(x)
+	meltName <- function(x, G, E, vName) {
+		melted <- data.frame(rep(rownames(x), ncol(x)), rep(colnames(x), each = nrow(x)), c(x))
+		names(melted) = c(G, E, vName)
 		melted
 	}
 
@@ -158,7 +161,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 
 	anyNullGEy <- is.null(G) | is.null(E) | is.null(y)
 	isGEyvec <- any(c(length(G), length(E), length(y)) > 1)
-	dataReformatted <- dataFormat(x = x, G = G, E = E, y = y, block = block, alpha = alpha, anyNullGEy = anyNullGEy)
+	dataReformatted <- dataFormat(x = x, G = G, E = E, y = y, block = block, alpha = alpha, anyNullGEy = anyNullGEy, override3col = override3col)
 	
 	Y <- dataReformatted[["Y"]]
 	isUnRep <- dataReformatted[["isUnRep"]]
@@ -209,13 +212,14 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	Theta_k <- lapply(Theta_k, function(x){rownames(x) <- rownames(Y); colnames(x) <- colnames(Y); return(x)})
 	nominal_k <- lapply(Theta_k, function(x) x + mu + Geffect )
 
-	r <- mean(c(dataReformatted[["repPerG"]]))
+	r <- mean(dataReformatted[["repPerG"]][dataReformatted[["repPerG"]] != 0])
+	# r <- mean(c(dataReformatted[["repPerG"]]))
 	degfGxE <- c(I + J - (2 * 1:KmaxPlusOne))
 	if (model == "AMMI") degfGxE <- degfGxE - 1
 	degfR <- nu - cumsum(degfGxE)
  	
  	if (test == "Ftest"){
-	 	if (n == 1 & is.null(errorMeanSqDfReps)){
+	 	if (r == 1 & is.null(errorMeanSqDfReps)){
 	 		warning("The trial is unreplicated and no error variance was provided, so a sequential F test will be used to determine the number of significant terms. This method is known to be too liberal, and it is suggested that you use the bootstrap method to test for significant terms with the argument test = 'bootstrap'.\n")
 	 		Ftest <- (Lambda[1:KmaxPlusOne]^2 / degfGxE)  / ((sigmasqR_k[2:M]) * nu / degfR) 
 	 		pvalue <- pf(Ftest, degfGxE, degfR, lower.tail = FALSE)
@@ -232,14 +236,15 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 		}
 	} else if (test == "bootstrap" ){
 		if (nCore > 1 & Kmax > 0){
-			pvalue <- foreach(K = 0:Kmax, .combine = c) %dopar% bootstrap(K, D = D, Dtilde = Dtilde, Edecomp = Edecomp, B = B, ...)
+			pvalue <- foreach(K = 0:Kmax, .combine = c) %dopar% bootstrap(K, D = D, Dtilde = Dtilde, M = M, Edecomp = Edecomp, B = B, model = model, ...)
 		} else {
-			pvalue <- bootstrap(0, D = D, Dtilde = Dtilde, Edecomp = Edecomp, B = B, ...)
-			if (Kmax > 0){
-				for (K in 1:Kmax){
-					pvalue <- c(pvalue, bootstrap(K, D = D, Dtilde = Dtilde, Edecomp = Edecomp, B = B, ...))
-				}
+			# pvalue <- bootstrap(0, D = D, Dtilde = Dtilde, Edecomp = Edecomp, M = M, B = B, ...)
+			# if (Kmax > 0){
+			pvalue <- NULL
+			for (K in 0:Kmax){
+				pvalue <- c(pvalue, bootstrap(K, D = D, Dtilde = Dtilde, Edecomp = Edecomp, M = M, B = B, model = model,...))
 			}
+			# }
 		}
 	} else {
 		stop("Please provide either 'bootstrap' or 'Ftest' to test argument.")
@@ -302,11 +307,11 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	addEffects <- list(mu = mu, Eeffect = Eeffect, Geffect = Geffect)
 
 	if (returnDataFrame){
-		coeff.list <- list(Y = meltName(Y,"Y"),
-						   A = meltName(A,"A"), 
-						   ThetaPlusR = meltName(Emat,"ThetaPlusR"), 
-						   Theta = meltName(Theta,"Theta"), 
-						   R = meltName(R,"R"))
+		coeff.list <- list(Y = meltName(Y, G = G, E = E, vName = "Y"),
+						   A = meltName(A, G = G, E = E, vName = "A"), 
+						   ThetaPlusR = meltName(Emat, G = G, E = E, vName = "ThetaPlusR"), 
+						   Theta = meltName(Theta, G = G, E = E, vName = "Theta"), 
+						   R = meltName(R, G = G, E = E, vName = "R"))
 		fitDF <- data.frame(Reduce(function(...) merge(..., by = c(E, G)), coeff.list), PCs)
 		output <- list(DF = fitDF)
 	} else {
@@ -336,8 +341,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	MS <- SS / anovaDf
 	PCpvalue <- pvalue
 	Tstat <- if (test == "Ftest") Ftest else pvalue * B
-	# if (test == "bootstrap" & !isUnRep) {
-	if (test == "bootstrap") {
+	if ({test == "bootstrap" | isUnRep} & is.null(errorMeanSqDfReps)) {
 		PCpvalue <- c(PCpvalue, NA)
 		Tstat <- c(Tstat, NA)
 	}
@@ -346,23 +350,29 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	anovaPC <- data.frame(Df = anovaDf, SS = SS, MS = MS, testStatistic = Tstat, Pvalue = PCpvalue)
 	if (isUnRep){
 		ANOVA <- rbind(anovafit[c(E, G),], anovaPC)
-	} else {
+	} else if(blockSig) {
 		ANOVA <- rbind(anovafit[c(E, G, paste0(E, ":", block)),], anovaPC, anovafit["Residuals", ])
-		for(i in c(E, G)){
-			ANOVA[i, "testStatistic"] <- ANOVA[i, "MS"] / ANOVA[paste0(E, ":", block), "MS"]
-			ANOVA[i, "Pvalue"] <- pf(ANOVA[i, "testStatistic"], df1 = ANOVA[i, "Df"], df2 = ANOVA[paste0(E, ":", block), "MS"], lower.tail = FALSE)
-		}
+	} else {
+		ANOVA <- rbind(anovafit[c(E, G),], anovaPC, anovafit["Residuals", ])
+	}
+
+	if(blockSig){
+		ANOVA[E, "testStatistic"] <- ANOVA[E, "MS"] / ANOVA[paste0(E, ":", block), "MS"]
+		ANOVA[E, "Pvalue"] <- pf(ANOVA[E, "testStatistic"], df1 = ANOVA[E, "Df"], df2 = ANOVA[paste0(E, ":", block), "MS"], lower.tail = FALSE)
 	}
 
 	if (!is.null(errorMeanSqDfReps)) {
 		rownames(ANOVA)[nrow(ANOVA)] <- paste0("PC", M)
-		ANOVA <- rbind(ANOVA, data.frame(Df = errorMeanSqDfReps[[2]], SS = prod(unlist(errorMeanSqDfReps[1:2])), MS = errorMeanSqDfReps[[1]], testStatistic = "", Pvalue = NA, row.names = "Residuals"))
+		ANOVA <- rbind(ANOVA, data.frame(Df = errorMeanSqDfReps[[2]], SS = prod(unlist(errorMeanSqDfReps[1:2])), MS = errorMeanSqDfReps[[1]], testStatistic = NA, Pvalue = NA, row.names = "Residuals"))		
+		for (i in c(G, E)) {
+			ANOVA[i, "testStatistic"] <- ANOVA[i, "MS"] / ANOVA["Residuals", "MS"]
+			ANOVA[i, "Pvalue"] <- pf(ANOVA[i, "testStatistic"], df1 = ANOVA[i, "Df"], df2 = ANOVA["Residuals", "MS"], lower.tail = FALSE)
+		}
 	}
-
-	ANOVA[[" "]] <- stars(ANOVA[["Pvalue"]])
 
 	if(verbose) {
 		printANOVA <- ANOVA
+		printANOVA[[" "]] <- stars(printANOVA[["Pvalue"]])
 		printANOVA[["Pvalue"]] <- sprintf("%e", printANOVA[["Pvalue"]]) 
 		printANOVA[printANOVA[["Pvalue"]] %in% "NA", "Pvalue"] <- NA 
 
@@ -372,7 +382,8 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 		print(printANOVA)
 		cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05\n")
 		cat("Number of significant multiplicative terms (tested sequentially): ", Kstar, "\n")
-		cat("NOTE: P-values for additive genotype and environment effects are tested with the full G:E term (not significant PCs).\n")
+		# cat("NOTE: P-values for additive genotype are tested with the full error term.\n")
+		if(blockSig) cat("NOTE: P-values for additive environment effects are tested with the", paste0(E,":",block), "term.\n")
 	}
 	options(contrasts = usrContr)
 	return(c(model = model, addEffects, list(ANOVA = ANOVA), output, list(pvalue = pvalue, sigPC = Kstar, scores = scores, varcomp = Sigmasq,

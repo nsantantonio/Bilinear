@@ -4,7 +4,7 @@
 \alias{bootstrap}
 \title{bootstrap function}
 \usage{
-bootstrap(K, D, Dtilde, Edecomp, B, bootMethod = "full",
+bootstrap(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full",
   Theta_k = NULL, ...)
 }
 \arguments{

@@ -4,10 +4,25 @@
 \alias{dataFormat}
 \title{dataFormat Function}
 \usage{
-dataFormat(...)
+dataFormat(x, G, E, y, block, alpha, anyNullGEy, override3col)
 }
 \arguments{
-\item{...}{arguments to dataFormat()}
+\item{x}{matrix or data.frame containing numeric values of cell means with genotypes on rows and environments on columns (e.g. ith genotype within jth environment). 
+Alternatively a data.frame can be provided in long format, with factor and value variable names passed to 'G', 'E' and 'y' respectively}
+
+\item{G}{character. Name of genotype variable in data.frame 'x' if 'x' is a data.frame in long format. Optionally, character or factor vector of genotype names (optional). If NULL (default) a matrix of cell means must be provided to 'x' argument}
+
+\item{E}{character. Name of environment variable in data.frame 'x' if 'x' is a data.frame in long format. Optionally, character or factor vector of environment names (optional). If NULL (default) a matrix of cell means must be provided to 'x' argument}
+
+\item{y}{character. Name of phenotype variable in data.frame 'x' if 'x' is a data.frame in long format. Optionally, numeric vector of phenotype values (optional). If NULL (default) a matrix of cell means must be provided to 'x' argument}
+
+\item{block}{character. Optional, for RCBD only. Name of block variable in data.frame 'x' if 'x' is a data.frame in long format and study is an RCBD. Optionally, character or factor vector of block names.}
+
+\item{alpha}{pvalue cutoff threshold for significance. Default is 0.05.}
+
+\item{anyNullGEy}{logical. Are any of 'G', 'E', 'y' arguments NULL?}
+
+\item{override3col}{logical. Overrides the 3 column numeric warning when a matrix of 3 coulmns is provided. Most users will not need to turn this off, unless the number of environments is 3 and a table of cell means are provided. Default is FALSE.}
 }
 \value{
 formatted data frame for use inside bilinear()

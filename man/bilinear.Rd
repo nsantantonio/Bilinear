@@ -8,7 +8,7 @@ bilinear(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL,
   model = "AMMI", errorMeanSqDfReps = NULL, f = 0.5,
   test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 10000,
   nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE,
-  override3col = FALSE, verbose, ...)
+  override3col = FALSE, verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{matrix or data.frame containing numeric values of cell means with genotypes on rows and environments on columns (e.g. ith genotype within jth environment). 

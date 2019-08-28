@@ -22,9 +22,9 @@ getTheta <- function(k, Edecomp){
 	Theta <- if(k == 0){
 		matrix(0, I, J)
 	} else if(k == 1) {
-		Lambda[1] * tcrossprod(Edecomp$u[,1], Edecomp$v[,1])
+		Edecomp$d[1] * tcrossprod(Edecomp$u[,1], Edecomp$v[,1])
 	} else {
-		Edecomp$u[, 1:k] %*% tcrossprod(diag(Lambda[1:k]), Edecomp$v[, 1:k])
+		Edecomp$u[, 1:k] %*% tcrossprod(diag(Edecomp$d[1:k]), Edecomp$v[, 1:k])
 	}
 	Theta
 }

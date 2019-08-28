@@ -39,7 +39,6 @@ print(soyMeanMat)
 # where y = mu + E_i + G_j + sum(u_k * d_k * v_k) + e_ijkl for k = 1,...,K multiplicative terms 
 # Note: environment and genotype indices are left out for simplicity from here on
 AMMIfit <- bilinear(x = soyMeanMat)  # note this could take several minutes, as it is sampling 100,000 bootstraps with 1 cpu
-
 # Check p-values relative to those obtained by Forkman and Piepho (2014).  While they will likely not match exactly, they should be VERY close.
 
 ##############
@@ -97,10 +96,12 @@ system.time(AMMIfit <- bilinear(x = soyMeanMat, B = 1000))
 # use multiple cores ('nCore' argument) to reduce run time by approximately 1/min(nCore, J-1, I-1), where the GE matrix is of dimension IxJ 
 # this is limited by the number of CPUs your computer has (most computers have at least 2 these days),
 # and may not work outside of the terminal environment (e.g. not tested in Rstudio or R GUI).
-# additionally, the multicore functionallity is limited to OSX, Linux and most other unix based operating systems, 
-# and will not work with Microsoft Windows (because 'dmMC' package doesnt play well with Windows).
+# Additionally, the multicore functionalty needs a parallel backend for 'foreach', such as 'doMC'.
+library(doMC)
+registerDoMC(2) # number of cores
 system.time(AMMIfit <- bilinear(x = soyMeanMat, model = "AMMI", B = 10000, nCore = 2))
-
+# note that here, parallelization actually slows down the process because the job is small, and the overhead actually increases computation time
+# with larger problems and more bootstraps, parallelization should drastically decrease computation time. 
 # system.time(AMMIfit<-bilinear(x=soyMeanMat, model="AMMI", B=100000, nCore=5)) # much faster!!!!
 
 
@@ -296,6 +297,3 @@ data(ontario)
 
 GGEfit<-bilinear(ontario, model = "GGE", B = 10000)
 BBplot(GGEfit, decorateGGE = TRUE)
-
-
-

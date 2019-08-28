@@ -10,14 +10,19 @@
 #' @param block character. Optional, for RCBD only. Name of block variable in data.frame 'x' if 'x' is a data.frame in long format and study is an RCBD. Optionally, character or factor vector of block names. 
 #' @param alpha pvalue cutoff threshold for significance. Default is 0.05.
 #' @param anyNullGEy logical. Are any of 'G', 'E', 'y' arguments NULL?
+#' @param override3col logical. Overrides the 3 column numeric warning when a matrix of 3 coulmns is provided. Most users will not need to turn this off, unless the number of environments is 3 and a table of cell means are provided. Default is FALSE.
 #' @return formatted data frame for use inside bilinear()
 #' @keywords bilinear
 #' @export
-dataFormat <- function(x, G, E, y, block, alpha, anyNullGEy){
-# x = x; G = G; E = E; y = y; block = block; alpha = alpha; anyNullGEy = anyNullGEy
-	meltName <- function(x, vName) {
-		melted <- data.frame(G = rep(rownames(x), ncol(x)), E = rep(colnames(x), each = nrow(x)))
-		melted[vName] <- c(x)
+dataFormat <- function(x, G, E, y, block, alpha, anyNullGEy, override3col){
+	# meltName <- function(x, vName) {
+	# 	melted <- data.frame(G = rep(rownames(x), ncol(x)), E = rep(colnames(x), each = nrow(x)))
+	# 	melted[vName] <- c(x)
+	# 	melted
+	# }
+	meltName <- function(x, G, E, vName) {
+		melted <- data.frame(rep(rownames(x), ncol(x)), rep(colnames(x), each = nrow(x)), c(x))
+		names(melted) = c(G, E, vName)
 		melted
 	}
 		warnmessage <- "Please provide a dataframe or matrix for x!
@@ -94,11 +99,9 @@ for the 'block' effect.\n"
 			DF <- x
 		} else if (is.matrix(x)){
 			if (is.numeric(x) & allNullGEy) {
-				if(any(is.na(x))) anyMissCells <- which(is.na(x), arr.ind = TRUE)
-				# DF <- melt(x)
-				DF <- meltName(x, "y")
-				# names(DF) <- c("G", "E", "y")
-				return(list(Y = x, DF = DF, isUnRep = TRUE, sigmasq = NULL, repPerG = 1, anyMissCells = anyMissCells))
+				# if(any(is.na(x))) anyMissCells <- which(is.na(x), arr.ind = TRUE)
+				DF <- meltName(x, G = "G", E = "E", vName = "y")
+				return(list(Y = x, DF = DF, isUnRep = TRUE, sigmasq = NULL, repPerG = 1)) #, anyMissCells = anyMissCells))
 			} else if(!allNullGEy){
 				DF <- x
 			}
@@ -106,17 +109,21 @@ for the 'block' effect.\n"
 			stop(warnmessage)
 		}			
 	}
-	
+	table(DF[[E]])
+	table(DF[[G]])
 
-	Elvls <- unique(DF[[E]][!is.na(DF[[E]])])
-	Glvls <- unique(DF[[G]][!is.na(DF[[G]])])
+	Elvls <- if (is.factor(DF[[E]])) levels(DF[[E]]) else unique(DF[[E]][!is.na(DF[[E]])])
+	Glvls <- if (is.factor(DF[[G]])) levels(DF[[G]]) else unique(DF[[G]][!is.na(DF[[G]])])
 
-	DF[[E]] <- factor(DF[[E]], levels = Elvls)
-	DF[[G]] <- factor(DF[[G]], levels = Glvls)
+	if (!is.factor(DF[[E]])) DF[[E]] <- factor(DF[[E]], levels = Elvls)
+	if (!is.factor(DF[[G]])) DF[[G]] <- factor(DF[[G]], levels = Glvls)
 
-	repGE <- table(DF[[G]][!is.na(DF[[y]])], DF[[E]][!is.na(DF[[y]])])
+	repGE <- as.matrix(table(DF[[G]][!is.na(DF[[y]])], DF[[E]][!is.na(DF[[y]])]))
+	repGE[Glvls, Elvls]
+
 	nReps <- unique(repGE)
-	isUnRep <- length(nReps) == 1 & nReps[1] == 1
+	# isUnRep <- length(nReps) == 1 & nReps[1] == 1
+	isUnRep <- all(nReps[nReps != 0] == 1)
 	
 	I <- nrow(repGE)
 	J <- ncol(repGE)
@@ -124,15 +131,18 @@ for the 'block' effect.\n"
 	if(I < 3 | J < 3) {stop(warnlackrank)}
 	
 	if (length(nReps) > 1){
-		cat(warnunbal)
+		if(length(nReps[nReps != 0]) > 1) cat(warnunbal)
 		if (any(repGE == 0)){
-			cat("This program now handles missing cells in the genotype environment table! An EM algorithm will be used to impute missing cells\n")
+			cat("Missing values found in the genotype environment table! An EM algorithm will be used to impute missing cells\n")
 		}
 	} 
 
 	if(isUnRep){
 		fit <- lm(as.formula(paste0(y," ~ ", E, " + ", G)), data = DF)
-		Y <- acast(DF, as.formula(paste0(G, " ~ ", E)), value.var = y)
+		allCombos <- expand.grid(E = Elvls, G = Glvls)
+		DFwNA <- merge(allCombos, DF, by = c(E, G), all = TRUE)
+		Y <- matrix(DFwNA[[y]], I, J, dimnames = list(unique(DFwNA[[G]]), unique(DFwNA[[E]])))
+		Y <- Y[Glvls, Elvls]
 	} else {
 		if (isRCBD){	
 			# fit <- lm(as.formula(paste0(y," ~ ", E, " + ", G, " + ", G, ":", E, " + ", block , ":", E)), data = DF)
@@ -154,15 +164,25 @@ for the 'block' effect.\n"
 			fit <- lm(as.formula(paste0(y," ~ ", E, " + ", G, " + ", G, ":", E)), data = DF)
 		}
 		coefs <- dummy.coef(fit)
-		intercept <- coefs[[1]]
+		intercept <- coefs[["(Intercept)"]]
+		whichInt <- which(c(paste0(G, ":", E), paste0(E, ":", G)) %in% names(coefs))
 
-		Emat <- matrix(rep(coefs[[2]], I), nrow = I, ncol = J, byrow = TRUE)
-		Gmat <- matrix(rep(coefs[[3]], J), nrow = I, ncol = J)
-		GEmat <- matrix(coefs[[4]], nrow = I, ncol = J, byrow = TRUE)
+		Emat <- matrix(rep(coefs[[E]], each = I), nrow = I, ncol = J)
+		Gmat <- matrix(rep(coefs[[G]], J), nrow = I, ncol = J)
+		# need to make sure that dummy.coef reports the interaction correctly (i.e. G:E -> E:G!)
+		GEcoefs <- coefs[names(coefs) %in% c(paste0(G, ":", E), paste0(E, ":", G))][[1]]
+
+		allCombos <- data.frame(do.call(rbind, strsplit(names(GEcoefs), ":")))
+		allCombos <- expand.grid(E = Elvls, G = Glvls)
+		
+		colnames(allCombos) <- if(whichInt == 2) c(E, G) else c(G, E) 
+		if (!all(names(GEcoefs) == apply(allCombos, 1, paste, collapse = ":"))) stop("G:E terms are in the wrong order! Please post an issue at https://github.com/nsantantonio/Bilinear/issues")
+		GEmat <- matrix(GEcoefs, nrow = I, ncol = J, byrow = whichInt == 2)
 		
 		Y <- intercept + Gmat + Emat + GEmat
 		rownames(Y) <- Glvls
 		colnames(Y) <- Elvls
+		Y[repGE == 0] <- NA
 	}
 	if(isUnRep) sigmasq <- NULL else sigmasq <- summary(fit)$sigma^2
 	errorDf <- anova(fit)["Residuals", "Df"]
@@ -174,6 +194,7 @@ for the 'block' effect.\n"
 	}
 	if(length(nReps) > 1) repPerG <- repGE else repPerG <- nReps
 	if(isRCBD) returnList <- c(returnList, blockSig = blockSig)
-	returnList <- c(returnList, list(repPerG = repPerG), anyMissCells = anyMissCells)
+	# returnList <- c(returnList, list(repPerG = repPerG, anyMissCells = anyMissCells))
+	returnList <- c(returnList, list(repPerG = repPerG))
 	return(returnList)
 }
