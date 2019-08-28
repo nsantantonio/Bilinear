@@ -79,16 +79,17 @@
 #' 
 #' print(c(errorMeanSq, errorDf, reps))
 #' # F_R test with externally estimated error variance
-#' soyF2 <- bilinear(soyShort, errorMeanSqDfReps = c(errorMeanSq, errorDf, reps), test = "Ftest")
+#' soyF2 <- bilinear(soyMeanMat, errorMeanSqDfReps = c(errorMeanSq, errorDf, reps), test = "Ftest")
 #' 
 #' #reformat data
 #' 
 #' # as long as dataframe or matrix column names match c("G", "E", "y") 
 #' # exactly (order doesnt matter), the function will assume that the data is in long format
+#' dfY <- soyMeanDf
 #' names(dfY) <- c("G","E","y") # name dfY c("G", "E", "y") 
 #' print(head(dfY, 20))
 #' bilinear(x = dfY, model = "AMMI", B = 10000, nCore = 2)
-#' bilinear(x = soyLong[c("G","E","y")], model = "AMMI", B = 10000, nCore = 2)
+#' bilinear(x = soy[c("G","E","y")], model = "AMMI", B = 10000, nCore = 2)
 #' 
 #' 
 #' matY <- as.matrix(dfY)
@@ -100,7 +101,7 @@
 #' names(dfY) <- c("geno", "env", "trait") #change names dfY
 #' print(head(dfY, 20))
 #' bilinear(x = dfY, G = "geno", E = "env", y = "trait", model = "AMMI", B = 10000, nCore = 2)
-# data can be also supplied directly as vectors to the 'G', 'E' and 'y' arguments
+#' data can be also supplied directly as vectors to the 'G', 'E' and 'y' arguments
 #' Gvec <- dfY$geno
 #' Evec <- dfY$env
 #' yvec <- dfY$trait
@@ -110,7 +111,7 @@
 bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE, override3col = FALSE, verbose = TRUE, ...){
 # x = soyMeanMat; f = 0.5; G = NULL; E = NULL; y = NULL; block = NULL; model = "AMMI"; test = "Ftest"; errorMeanSqDfReps = NULL; alpha = 0.05; B = 10000; nCore = 2; Bonferroni = TRUE; returnDataFrame = TRUE; override3col = TRUE; verbose = TRUE;
 # x = soy;
-# x = soyMeanDf;
+# x = soyMeanDf; names(x) <- c("geno", "env", "trait");G = "geno"; E = "env"; y = "trait";
 # x <-  soy[!{soy$E %in% unique(soy$E)[1:5] & soy$block %in% unique(soy$block)[1:2]}, ]
 # x <- soy[!{soy$E %in% unique(soy$E)[1:5] & soy$G %in% unique(soy$G)[1:2]}, ]
 # x <- soyMeanDf[!{soyMeanDf$E %in% unique(soyMeanDf$E)[1:5] & soyMeanDf$G %in% unique(soyMeanDf$G)[1:2]}, ]

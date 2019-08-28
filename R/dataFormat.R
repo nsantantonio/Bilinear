@@ -109,8 +109,6 @@ for the 'block' effect.\n"
 			stop(warnmessage)
 		}			
 	}
-	table(DF[[E]])
-	table(DF[[G]])
 
 	Elvls <- if (is.factor(DF[[E]])) levels(DF[[E]]) else unique(DF[[E]][!is.na(DF[[E]])])
 	Glvls <- if (is.factor(DF[[G]])) levels(DF[[G]]) else unique(DF[[G]][!is.na(DF[[G]])])
@@ -139,7 +137,8 @@ for the 'block' effect.\n"
 
 	if(isUnRep){
 		fit <- lm(as.formula(paste0(y," ~ ", E, " + ", G)), data = DF)
-		allCombos <- expand.grid(E = Elvls, G = Glvls)
+		allCombos <- expand.grid(Elvls, Glvls)
+		names(allCombos) <- c(E, G)
 		DFwNA <- merge(allCombos, DF, by = c(E, G), all = TRUE)
 		Y <- matrix(DFwNA[[y]], I, J, dimnames = list(unique(DFwNA[[G]]), unique(DFwNA[[E]])))
 		Y <- Y[Glvls, Elvls]
