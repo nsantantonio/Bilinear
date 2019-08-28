@@ -52,7 +52,6 @@ length 2 to the alpha argument with the first element as the significance
 threshold for the number of PCs,and the second as the significance threshold
 for the 'block' effect.\n"
 
-	attach(list(...))
 	isRCBD <- !is.null(block) | "block" %in% colnames(x)
 	anyNullGEy <- is.null(G) | is.null(E) | is.null(y)
 	allNullGEy <- is.null(G) & is.null(E) & is.null(y)
