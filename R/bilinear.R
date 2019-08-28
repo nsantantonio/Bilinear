@@ -106,6 +106,17 @@
 #' Evec <- dfY$env
 #' yvec <- dfY$trait
 #' bilinear(G = Gvec, E = Evec, y = yvec, model = "AMMI", alpha = 0.05, B = 10000, nCore = 2)
+#'
+#' # Impute missing data!
+#' missMat <- soyMeanMat 
+#' missMat[sample(1:prod(dim(missMat)), 10)] <- NA 
+#' print(missMat)
+#' bilinear(x = matY, model = "AMMI", B = 10000, nCore = 2) 
+#''
+#' missMeanDf x <- soyMeanDf[!{soyMeanDf$E %in% unique(soyMeanDf$E)[1:5] & soyMeanDf$G %in% unique(soyMeanDf$G)[1:2]}, ]
+#' missDf <- soy[!{soy$E %in% unique(soy$E)[1:5] & soy$G %in% unique(soy$G)[1:2]}, ]
+#' print(matY[1:20,])
+#' bilinear(x = matY, model = "AMMI", B = 10000, nCore = 2) 
 #' @keywords AMMI, GGE, parametric bootstrap
 #' @export
 bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE, override3col = FALSE, verbose = TRUE, ...){
@@ -194,7 +205,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	J <- ncol(Y) 
 
 	if(any(is.na(Y))){
-		emammi(Y, model = model, ...)
+		em(Y, model = model, ...)
 	}
 	
 	decomp <- bdecomp(Y, model = model)
