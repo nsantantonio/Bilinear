@@ -2,11 +2,18 @@
 #'
 #' This function is made to format data within bilinear(). Not intended for use by user.
 #'
-#' @param ... arguments to dataFormat()
+#' @param x matrix or data.frame containing numeric values of cell means with genotypes on rows and environments on columns (e.g. ith genotype within jth environment). 
+#'			Alternatively a data.frame can be provided in long format, with factor and value variable names passed to 'G', 'E' and 'y' respectively
+#' @param G character. Name of genotype variable in data.frame 'x' if 'x' is a data.frame in long format. Optionally, character or factor vector of genotype names (optional). If NULL (default) a matrix of cell means must be provided to 'x' argument
+#' @param E character. Name of environment variable in data.frame 'x' if 'x' is a data.frame in long format. Optionally, character or factor vector of environment names (optional). If NULL (default) a matrix of cell means must be provided to 'x' argument
+#' @param y character. Name of phenotype variable in data.frame 'x' if 'x' is a data.frame in long format. Optionally, numeric vector of phenotype values (optional). If NULL (default) a matrix of cell means must be provided to 'x' argument
+#' @param block character. Optional, for RCBD only. Name of block variable in data.frame 'x' if 'x' is a data.frame in long format and study is an RCBD. Optionally, character or factor vector of block names. 
+#' @param alpha pvalue cutoff threshold for significance. Default is 0.05.
+#' @param anyNullGEy logical. Are any of 'G', 'E', 'y' arguments NULL?
 #' @return formatted data frame for use inside bilinear()
 #' @keywords bilinear
 #' @export
-dataFormat <- function(...){
+dataFormat <- function(x, G, E, y, block, alpha, anyNullGEy){
 # x = x; G = G; E = E; y = y; block = block; alpha = alpha; anyNullGEy = anyNullGEy
 	meltName <- function(x, vName) {
 		melted <- data.frame(G = rep(rownames(x), ncol(x)), E = rep(colnames(x), each = nrow(x)))
@@ -45,6 +52,7 @@ length 2 to the alpha argument with the first element as the significance
 threshold for the number of PCs,and the second as the significance threshold
 for the 'block' effect.\n"
 
+	attach(list(...))
 	isRCBD <- !is.null(block) | "block" %in% colnames(x)
 	anyNullGEy <- is.null(G) | is.null(E) | is.null(y)
 	allNullGEy <- is.null(G) & is.null(E) & is.null(y)
@@ -128,7 +136,8 @@ for the 'block' effect.\n"
 		Y <- acast(DF, as.formula(paste0(G, " ~ ", E)), value.var = y)
 	} else {
 		if (isRCBD){	
-			fit <- lm(as.formula(paste0(y," ~ ", E, " + ", G, " + ", G, ":", E, " + ", block , ":", E)), data = DF)
+			# fit <- lm(as.formula(paste0(y," ~ ", E, " + ", G, " + ", G, ":", E, " + ", block , ":", E)), data = DF)
+			fit <- lm(as.formula(paste0(y," ~ ", E, " + ", block , ":", E, " + ", G, " + ", G, ":", E)), data = DF)
 			pvalBlock <- anova(fit)["E:block","Pr(>F)"]
 			blockSig <- TRUE
 			if (length(alpha) > 1){

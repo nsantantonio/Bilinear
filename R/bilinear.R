@@ -194,7 +194,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	}
 	
 	decomp <- bdecomp(Y, model = model)
-	attach(decomp)
+	for (i in names(decomp)) assign(i, decomp[[i]])
 
 	Theta_k <- lapply(0:KmaxPlusOne, getTheta, Edecomp = Edecomp)
 	names(Theta_k) <- paste0("PC", 0:KmaxPlusOne)
