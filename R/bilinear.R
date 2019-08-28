@@ -107,7 +107,7 @@
 #' bilinear(G = Gvec, E = Evec, y = yvec, model = "AMMI", alpha = 0.05, B = 10000, nCore = 2)
 #' @keywords AMMI, GGE, parametric bootstrap
 #' @export
-bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE, override3col = FALSE, verbose, ...){
+bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE, override3col = FALSE, verbose = TRUE, ...){
 # x = soyMeanMat; f = 0.5; G = NULL; E = NULL; y = NULL; block = NULL; model = "AMMI"; test = "bootstrap"; errorMeanSqDfReps = NULL; alpha = 0.05; B = 10000; nCore = 2; Bonferroni = TRUE; returnDataFrame = TRUE; override3col = TRUE;
 # x = soy; verbose = 1
 # x <-  soy[!{soy$E %in% unique(soy$E)[1:5] & soy$block %in% unique(soy$block)[1:2]}, ]
