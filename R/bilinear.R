@@ -108,10 +108,10 @@
 #' @keywords AMMI, GGE, parametric bootstrap
 #' @export
 bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE, override3col = FALSE, verbose, ...){
-# x = Y; f = 0.5; G = NULL; E = NULL; y = NULL; block = NULL; model = "AMMI"; test = "bootstrap"; errorMeanSqDfReps = NULL; alpha = 0.05; B = 10000; nCore = 2; Bonferroni = TRUE; returnDataFrame = TRUE; override3col = TRUE;
+# x = soyMeanMat; f = 0.5; G = NULL; E = NULL; y = NULL; block = NULL; model = "AMMI"; test = "bootstrap"; errorMeanSqDfReps = NULL; alpha = 0.05; B = 10000; nCore = 2; Bonferroni = TRUE; returnDataFrame = TRUE; override3col = TRUE;
 # x = soy; verbose = 1
 # x <-  soy[!{soy$E %in% unique(soy$E)[1:5] & soy$block %in% unique(soy$block)[1:2]}, ]
-
+# sapply(list.files("R"), function(x) source(paste0("R/", x)))
 	if (!.Platform$OS.type %in% "unix" & nCore > 1){
 		nCore <- 1
 		warning("Multicore function only implemented for unix based systems (including macOS and Linux). Continuing with 1 core...\n")
@@ -163,6 +163,9 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	Y <- dataReformatted[["Y"]]
 	isUnRep <- dataReformatted[["isUnRep"]]
 	if (anyNullGEy | isGEyvec) {G <- "G"; E <- "E"; y <- "y"}
+
+	blockSig <- if (!is.null(dataReformatted[["blockSig"]])){if (dataReformatted[["blockSig"]]) TRUE else FALSE} else FALSE
+
 	if (is.null(block) & "block" %in% names(dataReformatted[["DF"]])) block <- "block"
 	
 	if (!is.null(errorMeanSqDfReps)){
@@ -225,7 +228,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 			Ftest <- c(sigmasqR_k[1:M] * nu) / (df1 * (sigmasq[1] / reps))
 			pvalue <- pf(Ftest, df1, df2, lower.tail = FALSE)
 		} else {
-			stop("oops! something wrong happened >..< please send an email to ns722@cornell.edu with the error generated")
+			stop("oops! something wrong happened >..< please post an issue at https://github.com/nsantantonio/Bilinear/issues ")
 		}
 	} else if (test == "bootstrap" ){
 		if (nCore > 1 & Kmax > 0){
@@ -282,7 +285,6 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	rownames(Gscores) <- names(Geffect)
 	rownames(Escores) <- names(Eeffect)
 
-
 	scores <- list(Gscores = Gscores, Escores = Escores)		
 
 	rankTables <- lapply(nominal_k[1:(Kstar + 1)], function(x) apply(-x, 2, rank))
@@ -317,48 +319,60 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 
 	if (isUnRep) nPCANOVA <- KmaxPlusOne else nPCANOVA <- M
 	
-	blockStatement <- if (!is.null(dataReformatted[["blockSig"]])){
-		if (dataReformatted[["blockSig"]]) paste0(" + ", E, ":", block) else ""
-	} else {""}
+	blockStatement <- if (blockSig) paste0(" + ", E, ":", block) else ""
 
-	modelStatement <- paste0(y, " ~ ", paste0(E, blockStatement, " + ", G, " + ", E, ":", G))
+	modelStatement <- paste0(y, " ~ ", E, blockStatement, " + ", G)
+	if(!isUnRep) modelStatement <- paste0(modelStatement, " + ", G, ":", E)
 	fit <- lm(as.formula(modelStatement), data = dataReformatted[["DF"]])
 
 	anovafit <- as.data.frame(anova(fit)) 
 	names(anovafit) <- c("Df", "SS", "MS", "testStatistic", "Pvalue")
-	anovaDf <- degfGxE
-	if (!dataReformatted[["isUnRep"]]) anovaDf <- c(anovaDf, tail(degfR, 1))
+	# anovaDf <- degfGxE
+	# if (!isUnRep) anovaDf <- c(anovaDf, tail(degfR, 1))
+	anovaDf <- c(degfGxE, tail(degfR, 1))
 
 	SS <- Lambda[1:M]^2
 	if(r > 1) SS <- SS * r
 	MS <- SS / anovaDf
 	PCpvalue <- pvalue
 	Tstat <- if (test == "Ftest") Ftest else pvalue * B
-	if (test == "bootstrap" & !isUnRep) {
+	# if (test == "bootstrap" & !isUnRep) {
+	if (test == "bootstrap") {
 		PCpvalue <- c(PCpvalue, NA)
 		Tstat <- c(Tstat, NA)
 	}
 	names(PCpvalue) <- paste0("PC", 1:length(PCpvalue))
 	names(Tstat) <- paste0("PC", 1:length(Tstat))
 	anovaPC <- data.frame(Df = anovaDf, SS = SS, MS = MS, testStatistic = Tstat, Pvalue = PCpvalue)
-	ANOVA <- rbind(anovafit[c(E, G, paste0(E, ":", block)),], anovaPC, anovafit["Residuals", ])
+	if (isUnRep){
+		ANOVA <- rbind(anovafit[c(E, G),], anovaPC)
+	} else {
+		ANOVA <- rbind(anovafit[c(E, G, paste0(E, ":", block)),], anovaPC, anovafit["Residuals", ])
+		for(i in c(E, G)){
+			ANOVA[i, "testStatistic"] <- ANOVA[i, "MS"] / ANOVA[paste0(E, ":", block), "MS"]
+			ANOVA[i, "Pvalue"] <- pf(ANOVA[i, "testStatistic"], df1 = ANOVA[i, "Df"], df2 = ANOVA[paste0(E, ":", block), "MS"], lower.tail = FALSE)
+		}
+	}
 
-	if (!is.null(errorMeanSqDfReps)) rownames(ANOVA)[nrow(ANOVA)] <- paste0("PC", M)
-	if (!is.null(errorMeanSqDfReps)) ANOVA <- rbind(ANOVA, data.frame(Df = errorMeanSqDfReps[[2]], SS = prod(unlist(errorMeanSqDfReps[1:2])), MS = errorMeanSqDfReps[[1]], testStatistic = "", Pvalue = NA, row.names = "Residuals"))
+	if (!is.null(errorMeanSqDfReps)) {
+		rownames(ANOVA)[nrow(ANOVA)] <- paste0("PC", M)
+		ANOVA <- rbind(ANOVA, data.frame(Df = errorMeanSqDfReps[[2]], SS = prod(unlist(errorMeanSqDfReps[1:2])), MS = errorMeanSqDfReps[[1]], testStatistic = "", Pvalue = NA, row.names = "Residuals"))
+	}
 
 	ANOVA[[" "]] <- stars(ANOVA[["Pvalue"]])
-	
-	ANOVA[["Pvalue"]] <- sprintf("%e", ANOVA[["Pvalue"]]) 
-	ANOVA[ANOVA[["Pvalue"]] %in% "NA", "Pvalue"] <- NA 
-
-	ANOVA[as.numeric(ANOVA[["Pvalue"]]) %in% 0, "Pvalue"] <- paste0("< ", 1 / B)
-	ANOVA[is.na(ANOVA[["Pvalue"]]), "Pvalue"] <- ""
 
 	if(verbose) {
+		printANOVA <- ANOVA
+		printANOVA[["Pvalue"]] <- sprintf("%e", printANOVA[["Pvalue"]]) 
+		printANOVA[printANOVA[["Pvalue"]] %in% "NA", "Pvalue"] <- NA 
+
+		printANOVA[as.numeric(printANOVA[["Pvalue"]]) %in% 0, "Pvalue"] <- paste0("< ", 1 / B)
+		printANOVA[is.na(printANOVA[["Pvalue"]]), "Pvalue"] <- ""
 		cat("Analysis of Variance Table\n", paste0("Response: ", y), "\n")
-		print(ANOVA)
+		print(printANOVA)
 		cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05\n")
 		cat("Number of significant multiplicative terms (tested sequentially): ", Kstar, "\n")
+		cat("NOTE: P-values for additive genotype and environment effects are tested with the full G:E term (not significant PCs).\n")
 	}
 	options(contrasts = usrContr)
 	return(c(model = model, addEffects, list(ANOVA = ANOVA), output, list(pvalue = pvalue, sigPC = Kstar, scores = scores, varcomp = Sigmasq,
