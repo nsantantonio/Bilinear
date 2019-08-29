@@ -26,7 +26,6 @@ bootstrap <- function(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full", T
 	
 	I <- nrow(Edecomp$u)
 	J <- nrow(Edecomp$v)
-# if (verbose) cat("Data consists of ", I, " Genotypes evaluated in ", J, " Environments\n")
 
 	LLt_I <- diag(I) - (1 / I) * matrix(1, I, I) 
 	LLt_J <- diag(J) - (1 / J) * matrix(1, J, J) 

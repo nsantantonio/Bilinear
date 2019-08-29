@@ -1,4 +1,3 @@
-
 #' Expectation maximization algorithm to impute missing GxE cells
 #'
 #' This function will impute missing cells in the GxE table using an expectation maximization algorithm. 
@@ -102,7 +101,6 @@ em <- function(Y, model, tol = 1e-4, maxiter = 100, k = NULL, fast = TRUE, Ytrue
 		if (verbose & sumdiffscaled < tol) {
 			cat("Imputation algorithm converged! returning imputed matrix.\n")
 		} else if (i == maxiter) {
-			# cat("Imputation algorithm did not converge, maximum iterations reached.\n")
 			warning("Imputation algorithm did not converge, maximum iterations reached!")
 		}
 	}

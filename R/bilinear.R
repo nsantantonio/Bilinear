@@ -125,16 +125,6 @@
 #' @keywords AMMI, GGE, parametric bootstrap
 #' @export
 bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE, override3col = FALSE, verbose = TRUE, ...){
-# x = soyMeanMat; f = 0.5; G = NULL; E = NULL; y = NULL; block = NULL; model = "AMMI"; test = "Ftest"; errorMeanSqDfReps = NULL; alpha = 0.05; B = 10000; nCore = 2; Bonferroni = TRUE; returnDataFrame = TRUE; override3col = TRUE; verbose = TRUE;
-# x = soy;
-# x = soyMeanDf; names(x) <- c("geno", "env", "trait");G = "geno"; E = "env"; y = "trait";
-# x <-  soy[!{soy$E %in% unique(soy$E)[1:5] & soy$block %in% unique(soy$block)[1:2]}, ]
-# x <- soy[!{soy$E %in% unique(soy$E)[1:5] & soy$G %in% unique(soy$G)[1:2]}, ]
-# x <- soyMeanDf[!{soyMeanDf$E %in% unique(soyMeanDf$E)[1:5] & soyMeanDf$G %in% unique(soyMeanDf$G)[1:2]}, ]
-# sapply(list.files("R"), function(x) source(paste0("R/", x)))
-
-# x <- soyMeanMat 
-# x[sample(1:prod(dim(x)), 10)] <- NA 
 
 	if (!.Platform$OS.type %in% "unix" & nCore > 1){
 		nCore <- 1
@@ -352,8 +342,6 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 
 	anovafit <- as.data.frame(anova(fit)) 
 	names(anovafit) <- c("Df", "SS", "MS", "testStatistic", "Pvalue")
-	# anovaDf <- degfGxE
-	# if (!isUnRep) anovaDf <- c(anovaDf, tail(degfR, 1))
 	anovaDf <- c(degfGxE, tail(degfR, 1))
 
 	SS <- Lambda[1:M]^2
@@ -402,7 +390,6 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 		print(printANOVA)
 		cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05\n")
 		cat("Number of significant multiplicative terms (tested sequentially): ", Kstar, "\n")
-		# cat("NOTE: P-values for additive genotype are tested with the full error term.\n")
 		if (blockSig) cat("NOTE: P-values for additive environment effects are tested with the", paste0(E,":",block), "term.\n")
 	}
 	options(contrasts = usrContr)
