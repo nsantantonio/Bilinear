@@ -134,9 +134,9 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	listOfPackages <- NULL
 	if (nCore > 1) listOfPackages <- c(listOfPackages, "foreach")
 	
-	new_packages <- listOfPackages[!(listOfPackages %in% installed.packages()[, "Package"])]
+	newpackages <- listOfPackages[!(listOfPackages %in% installed.packages()[, "Package"])]
 
-	if (length(new_packages)){
+	if (length(newpackages)){
 		cat("To use 'nCore' > 1, please install the 'foreach' package, along your favorite parallel backend that uses 'foreach' (e.g. doMC), load the library and set the number of desired cores (e.g. registerDoMC(nCores)) \n Continuing with nCore = 1\n")	
 		nCore <- 1
 	}
@@ -212,18 +212,18 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	decomp <- bdecomp(Y, model = model)
 	for (i in names(decomp)) assign(i, decomp[[i]])
 
-	Theta_k <- lapply(0:KmaxPlusOne, getTheta, Edecomp = Edecomp)
-	names(Theta_k) <- paste0("PC", 0:KmaxPlusOne)
+	Thetak <- lapply(0:KmaxPlusOne, getTheta, Edecomp = Edecomp)
+	names(Thetak) <- paste0("PC", 0:KmaxPlusOne)
 
-	sigmasqGxE_k <- c(PC0 = 0)
-	sigmasqR_k <- c(PC0 = 1/nu * crossprod(Lambda[1:M]))
+	sigmasqGxEk <- c(PC0 = 0)
+	sigmasqRk <- c(PC0 = 1/nu * crossprod(Lambda[1:M]))
 	for (k in 1:KmaxPlusOne){
-		sigmasqGxE_k[paste0("PC", k)] <- 1/nu * crossprod(Lambda[1:k])
-		sigmasqR_k[paste0("PC", k)] <- 1/nu * crossprod(Lambda[(k+1):M])
+		sigmasqGxEk[paste0("PC", k)] <- 1/nu * crossprod(Lambda[1:k])
+		sigmasqRk[paste0("PC", k)] <- 1/nu * crossprod(Lambda[(k+1):M])
 	}	
 
-	Theta_k <- lapply(Theta_k, function(x){rownames(x) <- rownames(Y); colnames(x) <- colnames(Y); return(x)})
-	nominal_k <- lapply(Theta_k, function(x) x + mu + Geffect )
+	Thetak <- lapply(Thetak, function(x){rownames(x) <- rownames(Y); colnames(x) <- colnames(Y); return(x)})
+	nominalk <- lapply(Thetak, function(x) x + mu + Geffect )
 
 	r <- mean(dataReformatted[["repPerG"]][dataReformatted[["repPerG"]] != 0])
 	# r <- mean(c(dataReformatted[["repPerG"]]))
@@ -234,7 +234,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
  	if (test == "Ftest"){
 	 	if (r == 1 & is.null(errorMeanSqDfReps)){
 	 		warning("The trial is unreplicated and no error variance was provided, so a sequential F test will be used to determine the number of significant terms. This method is known to be too liberal, and it is suggested that you use the bootstrap method to test for significant terms with the argument test = 'bootstrap'.\n")
-	 		Ftest <- (Lambda[1:KmaxPlusOne]^2 / degfGxE)  / ((sigmasqR_k[2:M]) * nu / degfR) 
+	 		Ftest <- (Lambda[1:KmaxPlusOne]^2 / degfGxE)  / ((sigmasqRk[2:M]) * nu / degfR) 
 	 		pvalue <- pf(Ftest, degfGxE, degfR, lower.tail = FALSE)
 	 	} else if (r > 1 | !is.null(errorMeanSqDfReps)){
 			if (verbose) cat("Using F_R test method\n")
@@ -242,7 +242,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 			df2 <- sigmasq[[2]]
 			reps <- if (r > 1) r else errorMeanSqDfReps[[3]]
 			
-			Ftest <- c(sigmasqR_k[1:M] * nu) / (df1 * (sigmasq[1] / reps))
+			Ftest <- c(sigmasqRk[1:M] * nu) / (df1 * (sigmasq[1] / reps))
 			pvalue <- pf(Ftest, df1, df2, lower.tail = FALSE)
 		} else {
 			stop("oops! something wrong happened >..< please post an issue at https://github.com/nsantantonio/Bilinear/issues ")
@@ -280,7 +280,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	}
 	colnames(PCs) <- paste0("PC", 1:ncol(PCs))
 
-	Theta <- Theta_k[[paste0("PC", Kstar)]]
+	Theta <- Thetak[[paste0("PC", Kstar)]]
 
 	if (Kstar > 0){
 		if (Kstar == 1){
@@ -302,10 +302,10 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 
 	scores <- list(Gscores = Gscores, Escores = Escores)		
 
-	rankTables <- lapply(nominal_k[1:(Kstar + 1)], function(x) apply(-x, 2, rank))
+	rankTables <- lapply(nominalk[1:(Kstar + 1)], function(x) apply(-x, 2, rank))
 	nameRank <- lapply(rankTables, renameRank)	
 
-	Sigmasq <- c(sigmasqGxE = sigmasqGxE_k[[paste0("PC", Kstar)]], sigmasqR = sigmasqR_k[[paste0("PC", Kstar)]])
+	Sigmasq <- c(sigmasqGxE = sigmasqGxEk[[paste0("PC", Kstar)]], sigmasqR = sigmasqRk[[paste0("PC", Kstar)]])
 	if (!is.null(sigmasq)) {Sigmasq["sigmasq"] <- sigmasq[1]}
 	degf <- c(degfGxE = sum(degfGxE[1:Kstar]), degfR = degfR[Kstar])
 	if (!is.null(sigmasq)) {degf["degfErr"] <- sigmasq[2]}
