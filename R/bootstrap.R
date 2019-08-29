@@ -16,10 +16,10 @@
 #'
 #' @keywords parametric bootstrap
 #' @export
-bootstrap <- function(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full", Theta_k = NULL, ...){
-	if(!bootMethod %in% c("full", "simple")) {stop("Please specify the parametric bootstrap method as 'full' or 'simple'.")}
+bootstrap <- function(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full", Theta_k = NULL, verbose = FALSE, ...){
+	if (!bootMethod %in% c("full", "simple")) {stop("Please specify the parametric bootstrap method as 'full' or 'simple'.")}
 	
-	if(K == 0) cat("Using", bootMethod, "parametric bootstrap method\n")
+	if (verbose & K == 0) cat("Using", bootMethod, "parametric bootstrap method\n")
 
 	Lambda <- Edecomp$d
 	nu <- D * Dtilde
@@ -37,12 +37,12 @@ bootstrap <- function(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full", T
 	S <- crossprod(Lambda_k)
 	T <- c(Lambda[Kplus1]^2 / S)
 
-	if(bootMethod == "full"){
+	if (bootMethod == "full"){
 		sigmasq_k <- 1/nu * S
-		if(is.null(Theta_k)){
+		if (is.null(Theta_k)){
 			if (K == 0){
 				Theta_K <- matrix(0, I, J)
-			} else if(K == 1){
+			} else if (K == 1){
 				Theta_K <- Lambda[1] * tcrossprod(Edecomp$u[,1], Edecomp$v[,1])
 			} else {
 				Theta_K <- Edecomp$u[, 1:K] %*% tcrossprod(diag(Lambda[1:K]), Edecomp$v[, 1:K])	
@@ -56,13 +56,13 @@ bootstrap <- function(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full", T
 	b <- 1
 
 	while(b <= B){
-		if(bootMethod == "full"){
+		if (bootMethod == "full"){
 			Eb <- Theta_K + matrix(rnorm(I * J, sd = sqrt(sigmasq_k)), I, J)
-			if(model == "AMMI"){
+			if (model == "AMMI"){
 				Ehatb <- LLt_I %*% Eb %*% LLt_J 
-			} else if(model %in% c("GGE","SREG")){
+			} else if (model %in% c("GGE","SREG")){
 				Ehatb <- LLt_I %*% Eb 
-			} else if(model %in% c("EGE","GREG")){
+			} else if (model %in% c("EGE","GREG")){
 				Ehatb <- Eb %*% LLt_J 
 			} else {stop("unspecified model")}
 		} else {
@@ -71,12 +71,11 @@ bootstrap <- function(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full", T
 		
 		Lambda_b <- svd(Ehatb)$d
 		
-		if(bootMethod == "full"){
+		if (bootMethod == "full"){
 			T_b[b, 1] <- Lambda_b[Kplus1]^2 / crossprod(Lambda_b[Kplus1:(M)]) 
 		} else {
 			T_b[b, 1] <- Lambda_b[1]^2 / crossprod(Lambda_b) 
 		}
-		
 		b <- b + 1
 	}
 	

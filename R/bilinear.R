@@ -112,11 +112,16 @@
 #' missMat[sample(1:prod(dim(missMat)), 10)] <- NA 
 #' print(missMat)
 #' bilinear(x = matY, model = "AMMI", B = 10000, nCore = 2) 
-#''
-#' missMeanDf x <- soyMeanDf[!{soyMeanDf$E %in% unique(soyMeanDf$E)[1:5] & soyMeanDf$G %in% unique(soyMeanDf$G)[1:2]}, ]
-#' missDf <- soy[!{soy$E %in% unique(soy$E)[1:5] & soy$G %in% unique(soy$G)[1:2]}, ]
-#' print(matY[1:20,])
-#' bilinear(x = matY, model = "AMMI", B = 10000, nCore = 2) 
+#'
+#' missMat <- soyMeanMat 
+#' missMat[sample(1:prod(dim(missMat)), 10)] <- NA 
+#' print(missMat) # 10 missing records
+#' missFit <- bilinear(x = missMat, model = "AMMI", B = 10000) 
+#' 
+#' library(Bilinear)
+#' missMeanDf <- soyMeanDf[!{soyMeanDf$E %in% unique(soyMeanDf$E)[4:6] & soyMeanDf$G %in% unique(soyMeanDf$G)[3:4]}, ]
+#' nrow(missMeanDf) # 10 missing records
+#' missFit2 <- bilinear(x = missMeanDf, model = "AMMI", B = 10000, maxiter = 200, Ytrue = soyMeanMat, plotMSE = TRUE, tol = 1e-4) 
 #' @keywords AMMI, GGE, parametric bootstrap
 #' @export
 bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE, override3col = FALSE, verbose = TRUE, ...){
@@ -127,6 +132,10 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 # x <- soy[!{soy$E %in% unique(soy$E)[1:5] & soy$G %in% unique(soy$G)[1:2]}, ]
 # x <- soyMeanDf[!{soyMeanDf$E %in% unique(soyMeanDf$E)[1:5] & soyMeanDf$G %in% unique(soyMeanDf$G)[1:2]}, ]
 # sapply(list.files("R"), function(x) source(paste0("R/", x)))
+
+# x <- soyMeanMat 
+# x[sample(1:prod(dim(x)), 10)] <- NA 
+
 	if (!.Platform$OS.type %in% "unix" & nCore > 1){
 		nCore <- 1
 		warning("Multicore function only implemented for unix based systems (including macOS and Linux). Continuing with 1 core...\n")
@@ -204,8 +213,10 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	I <- nrow(Y) 
 	J <- ncol(Y) 
 
-	if(any(is.na(Y))){
-		em(Y, model = model, ...)
+	if (any(is.na(Y))){
+		if (verbose)	cat("Missing cells found in the genotype environment table! Imputing missing cells with EM algorithm...\n")
+		imp <- em(Y, model = model, verbose = verbose, B = B, ...)
+		Y <- if (is.list(imp)) imp$Yimp else imp
 	}
 	
 	decomp <- bdecomp(Y, model = model)
@@ -248,15 +259,12 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 		}
 	} else if (test == "bootstrap" ){
 		if (nCore > 1 & Kmax > 0){
-			pvalue <- foreach(K = 0:Kmax, .combine = c) %dopar% bootstrap(K, D = D, Dtilde = Dtilde, M = M, Edecomp = Edecomp, B = B, model = model, ...)
+			pvalue <- foreach(K = 0:Kmax, .combine = c) %dopar% bootstrap(K, D = D, Dtilde = Dtilde, M = M, Edecomp = Edecomp, B = B, model = model, verbose = verbose, ...)
 		} else {
-			# pvalue <- bootstrap(0, D = D, Dtilde = Dtilde, Edecomp = Edecomp, M = M, B = B, ...)
-			# if (Kmax > 0){
 			pvalue <- NULL
 			for (K in 0:Kmax){
-				pvalue <- c(pvalue, bootstrap(K, D = D, Dtilde = Dtilde, Edecomp = Edecomp, M = M, B = B, model = model,...))
+				pvalue <- c(pvalue, bootstrap(K, D = D, Dtilde = Dtilde, Edecomp = Edecomp, M = M, B = B, model = model, verbose = verbose, ...))
 			}
-			# }
 		}
 	} else {
 		stop("Please provide either 'bootstrap' or 'Ftest' to test argument.")
@@ -339,7 +347,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	blockStatement <- if (blockSig) paste0(" + ", E, ":", block) else ""
 
 	modelStatement <- paste0(y, " ~ ", E, blockStatement, " + ", G)
-	if(!isUnRep) modelStatement <- paste0(modelStatement, " + ", G, ":", E)
+	if (!isUnRep) modelStatement <- paste0(modelStatement, " + ", G, ":", E)
 	fit <- lm(as.formula(modelStatement), data = dataReformatted[["DF"]])
 
 	anovafit <- as.data.frame(anova(fit)) 
@@ -349,7 +357,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	anovaDf <- c(degfGxE, tail(degfR, 1))
 
 	SS <- Lambda[1:M]^2
-	if(r > 1) SS <- SS * r
+	if (r > 1) SS <- SS * r
 	MS <- SS / anovaDf
 	PCpvalue <- pvalue
 	Tstat <- if (test == "Ftest") Ftest else pvalue * B
@@ -362,13 +370,13 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 	anovaPC <- data.frame(Df = anovaDf, SS = SS, MS = MS, testStatistic = Tstat, Pvalue = PCpvalue)
 	if (isUnRep){
 		ANOVA <- rbind(anovafit[c(E, G),], anovaPC)
-	} else if(blockSig) {
+	} else if (blockSig) {
 		ANOVA <- rbind(anovafit[c(E, G, paste0(E, ":", block)),], anovaPC, anovafit["Residuals", ])
 	} else {
 		ANOVA <- rbind(anovafit[c(E, G),], anovaPC, anovafit["Residuals", ])
 	}
 
-	if(blockSig){
+	if (blockSig){
 		ANOVA[E, "testStatistic"] <- ANOVA[E, "MS"] / ANOVA[paste0(E, ":", block), "MS"]
 		ANOVA[E, "Pvalue"] <- pf(ANOVA[E, "testStatistic"], df1 = ANOVA[E, "Df"], df2 = ANOVA[paste0(E, ":", block), "MS"], lower.tail = FALSE)
 	}
@@ -382,7 +390,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 		}
 	}
 
-	if(verbose) {
+	if (verbose) {
 		printANOVA <- ANOVA
 		printANOVA[[" "]] <- stars(printANOVA[["Pvalue"]])
 		printANOVA[["Pvalue"]] <- sprintf("%e", printANOVA[["Pvalue"]]) 
@@ -395,7 +403,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 		cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05\n")
 		cat("Number of significant multiplicative terms (tested sequentially): ", Kstar, "\n")
 		# cat("NOTE: P-values for additive genotype are tested with the full error term.\n")
-		if(blockSig) cat("NOTE: P-values for additive environment effects are tested with the", paste0(E,":",block), "term.\n")
+		if (blockSig) cat("NOTE: P-values for additive environment effects are tested with the", paste0(E,":",block), "term.\n")
 	}
 	options(contrasts = usrContr)
 	return(c(model = model, addEffects, list(ANOVA = ANOVA), output, list(pvalue = pvalue, sigPC = Kstar, scores = scores, varcomp = Sigmasq,

@@ -4,7 +4,7 @@
 \alias{em}
 \title{Expectation maximization algorithm to impute missing GxE cells}
 \usage{
-em(Y, model, tol = 0.001, maxiter = 100, k = NULL, fast = TRUE,
+em(Y, model, tol = 1e-04, maxiter = 100, k = NULL, fast = TRUE,
   Ytrue = NULL, plotMSE = FALSE, verbose = FALSE, ...)
 }
 \arguments{
@@ -16,9 +16,9 @@ em(Y, model, tol = 0.001, maxiter = 100, k = NULL, fast = TRUE,
 
 \item{maxiter}{integer. Maximum number of iterations.}
 
-\item{k}{number of PC to use for imputation. Default is NULL, and will estimate k from the imputed data. K will be estimated each}
+\item{k}{number of PC to use for imputation. Default is NULL, k will be determined from the imputed data using the parametric bootstrap test.}
 
-\item{fast}{logical or integer. If false or 0, the number of}
+\item{fast}{logical or integer. If false or 0, k will be deterined at each iteration (slow). If fast is non-zero, k will be estimated each iteration <= max(2, fast), and the last value of k will be used for remaining iterations. .}
 
 \item{Ytrue}{Same as Y but with known, non-mising values. This allows the user to evaluate the accuracy of imputation.}
 

@@ -136,6 +136,22 @@ Gvec <- dfY$geno
 Evec <- dfY$env
 yvec <- dfY$trait
 bilinear(G = Gvec, E = Evec, y = yvec, model = "AMMI", alpha = 0.05, B = 10000, nCore = 2)
+
+# Impute missing data!
+missMat <- soyMeanMat 
+missMat[sample(1:prod(dim(missMat)), 10)] <- NA 
+print(missMat)
+bilinear(x = matY, model = "AMMI", B = 10000, nCore = 2) 
+
+missMat <- soyMeanMat 
+missMat[sample(1:prod(dim(missMat)), 10)] <- NA 
+print(missMat) # 10 missing records
+missFit <- bilinear(x = missMat, model = "AMMI", B = 10000) 
+
+library(Bilinear)
+missMeanDf <- soyMeanDf[!{soyMeanDf$E \%in\% unique(soyMeanDf$E)[4:6] & soyMeanDf$G \%in\% unique(soyMeanDf$G)[3:4]}, ]
+nrow(missMeanDf) # 10 missing records
+missFit2 <- bilinear(x = missMeanDf, model = "AMMI", B = 10000, maxiter = 200, Ytrue = soyMeanMat, plotMSE = TRUE, tol = 1e-4) 
 }
 \keyword{AMMI,}
 \keyword{GGE,}

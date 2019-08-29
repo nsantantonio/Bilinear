@@ -7,8 +7,8 @@
 #' @param model character vector of length 1. bilinear model to be fit. Arguments can be "AMMI", "GGE", "SREG", "EGE", "GREG". "GGE" and "SREG" are equivalent, as are "EGE" and "GREG".
 #' @param tol scalar convergence tolerance threshold, defined as the sum of the absolute value of cell mean differences from iteration i and i-1 scaled by the standard deviation of the values in Y.
 #' @param maxiter  integer. Maximum number of iterations.
-#' @param k  number of PC to use for imputation. Default is NULL, and will estimate k from the imputed data. K will be estimated each  
-#' @param fast logical or integer. If false or 0, the number of 
+#' @param k  number of PC to use for imputation. Default is NULL, k will be determined from the imputed data using the parametric bootstrap test. 
+#' @param fast logical or integer. If false or 0, k will be deterined at each iteration (slow). If fast is non-zero, k will be estimated each iteration <= max(2, fast), and the last value of k will be used for remaining iterations. . 
 #' @param Ytrue  Same as Y but with known, non-mising values. This allows the user to evaluate the accuracy of imputation.
 #' @param plotMSE logical. Should the mean square error (MSE) be plotted?.
 #' @param verbose logical. Should details e printed?
@@ -38,8 +38,12 @@
 #' em(Y, model = "AMMI", tol = 1e-5, fast = 2, maxiter = 20, Ytrue = Ytrue, plotMSE = TRUE)
 #' @export
 
-em <- function(Y, model, tol = 1e-3, maxiter = 100, k = NULL, fast = TRUE, Ytrue = NULL, plotMSE = FALSE, verbose = FALSE, ...){
-	if(!identical(dim(Ytrue), dim(Ytrue))) stop("To evaluate imputation accuracy using mean square error, please provide a Ytrue of same dimensions as Y.")
+em <- function(Y, model, tol = 1e-4, maxiter = 100, k = NULL, fast = TRUE, Ytrue = NULL, plotMSE = FALSE, verbose = FALSE, ...){
+	if(!is.null(Ytrue)){
+		if (!identical(dim(Y), dim(Ytrue))) stop("To evaluate imputation accuracy using mean square error, please provide a Ytrue of same dimensions as Y.")
+		if (!{all(rownames(Ytrue) == rownames(Y)) & all(colnames(Ytrue) == colnames(Y))}) stop("row and col names of Ytrue must match those of Y!")
+	}
+
 	mu <- c("(Intercept)" = mean(Y, na.rm = TRUE))
 	Eeffect <- colMeans(Y, na.rm = TRUE) - mu
 	Geffect <- rowMeans(Y, na.rm = TRUE) - mu
@@ -49,34 +53,35 @@ em <- function(Y, model, tol = 1e-3, maxiter = 100, k = NULL, fast = TRUE, Ytrue
 	Yimp[whichMiss] <- mu + Eeffect[whichMiss[, "col"]] + Geffect[whichMiss[, "row"]]
 
 	calcMSE <- !is.null(Ytrue)
-	if(calcMSE) {
+	if (calcMSE) {
 		Ytrue <- Ytrue[whichMiss]
 		mse <- NULL
 	}
 
 	sdY <- sd(c(Y), na.rm = TRUE)
 	sumdiffscaled <- 1e5
+	if (verbose) { if (!is.null(k)) cat("Using", k, "PCs for imputation...\n") else if (fast) cat("Determining number of PCs for imputation...\n") else cat("Determining number of PCs for each iteration...\n") }
 
 	i <- 0
 	if (is.null(k) & fast) {
 		maxi <- max(2, fast)
 		while(i < maxi){
 			i <- i + 1
+			if (verbose) cat("iteration", i, "\n")
 			fitimp <- bilinear(Yimp, verbose = FALSE, returnDataFrame = FALSE, Bonferroni = FALSE, ...)
 			k <- fitimp$sigPC
 			est <- fitimp$A + fitimp$Theta
 			sumdiffscaled <- sum(abs(Yimp[whichMiss] - est[whichMiss])) / sdY
 			Yimp[whichMiss] <- est[whichMiss]
-			if(calcMSE){
+			if (calcMSE){
 				mse <- c(mse, sum((Yimp[whichMiss] - Ytrue)^2))
-				if (plotMSE) plot(1:length(mse), mse)
 			}
 		}
 		if (k < 1) {
 			cat("No significant PCs for imputation! Continuing with 1 PC for imputation...\n")
 			k <- 1
 		}
-		if(verbose) cat("Using", k, "PCs for imputation...\n")
+		if (verbose) cat("Using", k, "PCs for imputation...\n")
 	}
 
 	while(sumdiffscaled > tol & i < maxiter){
@@ -85,23 +90,25 @@ em <- function(Y, model, tol = 1e-3, maxiter = 100, k = NULL, fast = TRUE, Ytrue
 			fitimp <- bdecomp(Yimp, model = model)
 			fitimp[["Theta"]] <- getTheta(k, fitimp$Edecomp)
 		} else {
+			if (verbose) cat("iteration:", i, "\n")
 			fitimp <- bilinear(Yimp, verbose = FALSE, returnDataFrame = FALSE, Bonferroni = FALSE, ...)	
 		}
 		est <- fitimp$A + fitimp$Theta
 		sumdiffscaled <- sum(abs(Yimp[whichMiss] - est[whichMiss])) / sdY
 		Yimp[whichMiss] <- est[whichMiss]
-		if(calcMSE){
+		if (calcMSE){
 			mse <- c(mse, sum((Yimp[whichMiss] - Ytrue)^2))
-			if (plotMSE) plot(1:length(mse), mse)
 		}
 		if (verbose & sumdiffscaled < tol) {
 			cat("Imputation algorithm converged! returning imputed matrix.\n")
 		} else if (i == maxiter) {
 			# cat("Imputation algorithm did not converge, maximum iterations reached.\n")
-			warning("Imputation algorithm did not converge, maximum iterations reached.")
+			warning("Imputation algorithm did not converge, maximum iterations reached!")
 		}
 	}
-	if(calcMSE) return(list(Yimp = Yimp, MSE = mse)) else return(Yimp)
+	if (verbose) cat("total number of iterations:", i, "\n")
+	if (plotMSE) plot(1:length(mse), mse, xlab = "iteration", ylab = "Mean Square Error")
+	if (calcMSE) return(list(Yimp = Yimp, MSE = mse)) else return(Yimp)
 }
 
 

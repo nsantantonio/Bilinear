@@ -5,7 +5,7 @@
 \title{bootstrap function}
 \usage{
 bootstrap(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full",
-  Theta_k = NULL, ...)
+  Theta_k = NULL, verbose = FALSE, ...)
 }
 \arguments{
 \item{K}{integer, kth eigenvalue}

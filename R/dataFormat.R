@@ -45,10 +45,10 @@ the same number of times within each environment.  Means within sites will be
 used since replications differ. Care should be taken when drawing inference
 from results of unbalanced designs.\n"
 
-		warnMissingCells <- "WARNING: At least one genotype was not observed in at least one environment.
-An EM algorithm will be used to estimate the missing cells. 
-Care should be taken when interpreting results from designs with 
-missing genotype environment combinations.\n"
+# 		warnMissingCells <- "WARNING: At least one genotype was not observed in at least one environment.
+# An EM algorithm will be used to estimate the missing cells. 
+# Care should be taken when interpreting results from designs with 
+# missing genotype environment combinations.\n"
 
 		blockNotSig <- "Block was not significant at specified alpha level, 
 continuing using the pooled error term, or value provided to errorMeanSqDfReps.  
@@ -78,9 +78,9 @@ for the 'block' effect.\n"
 
 		if (ncol(x) == 3 & anyNullGEy & isAllNum){
 			is3env <- "yes"
-			if(!override3col) is3env <- readline("You have provided a dataframe or matrix with 3 columns, and no variable names to 'G', 'E' and/or 'y'.
+			if (!override3col) is3env <- readline("You have provided a dataframe or matrix with 3 columns, and no variable names to 'G', 'E' and/or 'y'.
 						Is the provided dataframe or matrix contain 3 environments with genotypes on the rows?  (y/n) ")
-			if(override3col | is3env %in% c("y","yes","YES","Yes","Y")) {
+			if (override3col | is3env %in% c("y","yes","YES","Yes","Y")) {
 				x <- as.matrix(x)
 			} else {
 				stop(warnmessage)
@@ -90,8 +90,8 @@ for the 'block' effect.\n"
 		if (all(c("G","E","y") %in% colnames(x))){
 			DF <- as.data.frame(x[,c("G", "E", "y")])
 			G <- "G"; E <- "E";	y <- "y"
-			if(!class(DF[[y]]) %in% "numeric") DF[[y]] <- as.numeric(DF[[y]])
-			if(isRCBD) {
+			if (!class(DF[[y]]) %in% "numeric") DF[[y]] <- as.numeric(DF[[y]])
+			if (isRCBD) {
 				DF$block <- x[,"block"]
 				block <- "block"
 			}
@@ -99,10 +99,10 @@ for the 'block' effect.\n"
 			DF <- x
 		} else if (is.matrix(x)){
 			if (is.numeric(x) & allNullGEy) {
-				# if(any(is.na(x))) anyMissCells <- which(is.na(x), arr.ind = TRUE)
+				# if (any(is.na(x))) cat(warnmiss)
 				DF <- meltName(x, G = "G", E = "E", vName = "y")
 				return(list(Y = x, DF = DF, isUnRep = TRUE, sigmasq = NULL, repPerG = 1)) #, anyMissCells = anyMissCells))
-			} else if(!allNullGEy){
+			} else if (!allNullGEy){
 				DF <- x
 			}
 		} else {
@@ -126,16 +126,16 @@ for the 'block' effect.\n"
 	I <- nrow(repGE)
 	J <- ncol(repGE)
 
-	if(I < 3 | J < 3) {stop(warnlackrank)}
+	if (I < 3 | J < 3) {stop(warnlackrank)}
 	
 	if (length(nReps) > 1){
-		if(length(nReps[nReps != 0]) > 1) cat(warnunbal)
-		if (any(repGE == 0)){
-			cat("Missing values found in the genotype environment table! An EM algorithm will be used to impute missing cells\n")
-		}
+		if (length(nReps[nReps != 0]) > 1) cat(warnunbal)
+		# if (any(repGE == 0)){
+		# 	cat(warnmiss)
+		# }
 	} 
 
-	if(isUnRep){
+	if (isUnRep){
 		fit <- lm(as.formula(paste0(y," ~ ", E, " + ", G)), data = DF)
 		allCombos <- expand.grid(Elvls, Glvls)
 		names(allCombos) <- c(E, G)
@@ -174,7 +174,7 @@ for the 'block' effect.\n"
 		allCombos <- data.frame(do.call(rbind, strsplit(names(GEcoefs), ":")))
 		allCombos <- expand.grid(E = Elvls, G = Glvls)
 		
-		colnames(allCombos) <- if(whichInt == 2) c(E, G) else c(G, E) 
+		colnames(allCombos) <- if (whichInt == 2) c(E, G) else c(G, E) 
 		if (!all(names(GEcoefs) == apply(allCombos, 1, paste, collapse = ":"))) stop("G:E terms are in the wrong order! Please post an issue at https://github.com/nsantantonio/Bilinear/issues")
 		GEmat <- matrix(GEcoefs, nrow = I, ncol = J, byrow = whichInt == 2)
 		
@@ -183,16 +183,16 @@ for the 'block' effect.\n"
 		colnames(Y) <- Elvls
 		Y[repGE == 0] <- NA
 	}
-	if(isUnRep) sigmasq <- NULL else sigmasq <- summary(fit)$sigma^2
+	if (isUnRep) sigmasq <- NULL else sigmasq <- summary(fit)$sigma^2
 	errorDf <- anova(fit)["Residuals", "Df"]
 	returnList <- list(Y = Y, DF = DF, isUnRep = isUnRep)
 
-	if(!isUnRep){
+	if (!isUnRep){
 		sigmaList <- c(sigmasq = sigmasq, errorDf = errorDf)
 		returnList <- c(returnList, list(sigmasq = sigmaList))
 	}
-	if(length(nReps) > 1) repPerG <- repGE else repPerG <- nReps
-	if(isRCBD) returnList <- c(returnList, blockSig = blockSig)
+	if (length(nReps) > 1) repPerG <- repGE else repPerG <- nReps
+	if (isRCBD) returnList <- c(returnList, blockSig = blockSig)
 	# returnList <- c(returnList, list(repPerG = repPerG, anyMissCells = anyMissCells))
 	returnList <- c(returnList, list(repPerG = repPerG))
 	return(returnList)
