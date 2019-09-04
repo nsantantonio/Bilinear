@@ -94,7 +94,7 @@ for the 'block' effect.\n"
 			} else if (is.numeric(x) & !allNullGEy){
 				DF <- x
 			} else if(!is.numeric(x)) {
-				stop("The matrix supplied is of class", class(c(x)), ". Please provide a matrix with numeric values (i.e. is.numeric(x) should be TRUE)")
+				stop("The matrix supplied is of class: ", class(c(x)), ". \nPlease provide a matrix with numeric values (i.e. is.numeric(x) should be TRUE)")
 			} else {
 				stop("Data format failed. please submit an issue with a reproducable example at https://github.com/nsantantonio/Bilinear/issues")
 			}
@@ -105,8 +105,8 @@ for the 'block' effect.\n"
 
 	if (any(sapply(DF, class) == "factor")) DF <- droplevels(DF)
 	
-	if (is.integer(DF[[E]]) | suppressWarnings(sum(is.na(as.numeric(as.character(DF[[E]]))))) == 0) DF[[E]] <- paste0("E", Elvls)
-	if (is.integer(DF[[G]]) | suppressWarnings(sum(is.na(as.numeric(as.character(DF[[G]]))))) == 0) DF[[G]] <- paste0("G", Glvls)
+	if (is.integer(DF[[E]]) | suppressWarnings(sum(is.na(as.numeric(as.character(DF[[E]]))))) == 0) DF[[E]] <- as.character(DF[[E]])
+	if (is.integer(DF[[G]]) | suppressWarnings(sum(is.na(as.numeric(as.character(DF[[G]]))))) == 0) DF[[G]] <- as.character(DF[[G]])
 
 	Elvls <- if (is.factor(DF[[E]])) levels(DF[[E]]) else unique(DF[[E]][!is.na(DF[[E]])])
 	Glvls <- if (is.factor(DF[[G]])) levels(DF[[G]]) else unique(DF[[G]][!is.na(DF[[G]])])
