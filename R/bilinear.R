@@ -389,7 +389,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 		cat("Analysis of Variance Table\n", paste0("Response: ", y), "\n")
 		print(printANOVA)
 		cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05\n")
-		cat("Number of significant multiplicative terms (tested sequentially): ", Kstar, "\n")
+		cat("Number of significant multiplicative terms", testseq, ":", Kstar, "\n")
 		if (blockSig) cat("NOTE: P-values for additive environment effects are tested with the", paste0(E,":",block), "term.\n")
 	}
 	options(contrasts = usrContr)

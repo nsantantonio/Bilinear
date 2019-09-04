@@ -91,22 +91,33 @@ for the 'block' effect.\n"
 			if (is.numeric(x) & allNullGEy) {
 				DF <- meltName(x, G = "G", E = "E", vName = "y")
 				return(list(Y = x, DF = DF, isUnRep = TRUE, sigmasq = NULL, repPerG = 1)) #, anyMissCells = anyMissCells))
-			} else if (!allNullGEy){
+			} else if (is.numeric(x) & !allNullGEy){
 				DF <- x
+			} else if(!is.numeric(x)) {
+				stop("The matrix supplied is of class", class(c(x)), ". Please provide a matrix with numeric values (i.e. is.numeric(x) should be TRUE)")
+			} else {
+				stop("Data format failed. please submit an issue with a reproducable example at https://github.com/nsantantonio/Bilinear/issues")
 			}
 		} else {
 			stop(warnmessage)
 		}			
 	}
 
+	if (any(sapply(DF, class) == "factor")) DF <- droplevels(DF)
+	
+	if (is.integer(DF[[E]]) | suppressWarnings(sum(is.na(as.numeric(as.character(DF[[E]]))))) == 0) DF[[E]] <- paste0("E", Elvls)
+	if (is.integer(DF[[G]]) | suppressWarnings(sum(is.na(as.numeric(as.character(DF[[G]]))))) == 0) DF[[G]] <- paste0("G", Glvls)
+
 	Elvls <- if (is.factor(DF[[E]])) levels(DF[[E]]) else unique(DF[[E]][!is.na(DF[[E]])])
 	Glvls <- if (is.factor(DF[[G]])) levels(DF[[G]]) else unique(DF[[G]][!is.na(DF[[G]])])
+
 
 	if (!is.factor(DF[[E]])) DF[[E]] <- factor(DF[[E]], levels = Elvls)
 	if (!is.factor(DF[[G]])) DF[[G]] <- factor(DF[[G]], levels = Glvls)
 
 	repGE <- as.matrix(table(DF[[G]][!is.na(DF[[y]])], DF[[E]][!is.na(DF[[y]])]))
 	repGE[Glvls, Elvls]
+	repGE[, Elvls]
 
 	nReps <- unique(repGE)
 	isUnRep <- all(nReps[nReps != 0] == 1)
