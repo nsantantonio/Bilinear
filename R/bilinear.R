@@ -20,6 +20,7 @@
 #' @param returnDataFrame logical. Should a data frame of the resulting model fit be returned? Default is TRUE
 #' @param override3col logical. Overrides the 3 column numeric warning when a matrix of 3 coulmns is provided. Most users will not need to turn this off, unless the number of environments is 3 and a table of cell means are provided. Default is FALSE.
 #' @param verbose logical. When TRUE, details from nalysis are printed.
+#' @param ... Additional arguments.
 #' @return The bilinear fit object and tests for significant dimensions.
 #' @details
 #' 
@@ -41,7 +42,7 @@
 #'
 #' @examples
 #' data(soy)
-#' print(soyMeansMat)
+#' print(soyMeanMat)
 #' 
 #' AMMIfit <- bilinear(x = soyMeanMat)
 #' AMMIfit[c("mu", "Eeffect", "Geffect")] 
@@ -101,7 +102,7 @@
 #' names(dfY) <- c("geno", "env", "trait") #change names dfY
 #' print(head(dfY, 20))
 #' bilinear(x = dfY, G = "geno", E = "env", y = "trait", model = "AMMI", B = 10000, nCore = 2)
-#' data can be also supplied directly as vectors to the 'G', 'E' and 'y' arguments
+#' # data can be also supplied directly as vectors to the 'G', 'E' and 'y' arguments
 #' Gvec <- dfY$geno
 #' Evec <- dfY$env
 #' yvec <- dfY$trait
@@ -123,6 +124,9 @@
 #' nrow(missMeanDf) # 10 missing records
 #' missFit2 <- bilinear(x = missMeanDf, model = "AMMI", B = 10000, maxiter = 200, Ytrue = soyMeanMat, plotMSE = TRUE, tol = 1e-4) 
 #' @keywords AMMI, GGE, parametric bootstrap
+#' @importFrom stats anova as.formula lm pf
+#' @importFrom utils installed.packages tail
+
 #' @export
 bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model = "AMMI", errorMeanSqDfReps = NULL, f=0.5, test = "bootstrap", imputePC = "sig", alpha = 0.05, B = 1e+04, nCore = 1, Bonferroni = FALSE, returnDataFrame = TRUE, override3col = FALSE, verbose = TRUE, ...){
 
@@ -388,7 +392,7 @@ bilinear <- function(x = NULL, G = NULL, E = NULL, y = NULL, block = NULL, model
 		printANOVA[is.na(printANOVA[["Pvalue"]]), "Pvalue"] <- ""
 		cat("Analysis of Variance Table\n", paste0("Response: ", y), "\n")
 		print(printANOVA)
-		cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05\n")
+		cat("---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05\n")
 		cat("Number of significant multiplicative terms", testseq, ":", Kstar, "\n")
 		if (blockSig) cat("NOTE: P-values for additive environment effects are tested with the", paste0(E,":",block), "term.\n")
 	}

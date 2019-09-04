@@ -25,6 +25,6 @@ Lambda: singular values from
 nu: degrees of freedom
 }
 \examples{
-data(soy)
-bdecomp(soyMeansMat, "AMMI")
+data(soyMeanMat)
+bdecomp(soyMeanMat, "AMMI")
 }

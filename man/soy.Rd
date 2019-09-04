@@ -6,9 +6,7 @@
 \title{Soybean data from Zobel, Wright and Gauch (1988) and 
 is subset from the \code{"gauch.soy"} dataset included in the \code{"agridat"} package 
 containing 7 genotypes evaluated in 10 environments}
-\format{soy An object of class \code{"data.frame"} containing plot values. The blocks (or reps) are randomly assigned as explained from the documentation of \code{"gauch.soy"} data from \code{"agridat"}
-soyMeanDf An object of class \code{"data.frame"} containing cell means (\code{"y"}) of genotype (\code{"G"}) within environment (\code{"E"})
-soyMeanMat An object of class \code{"matrix"} containing cell means of genotypes on rows and environments on columns}
+\format{soy An object of class \code{"data.frame"} containing plot values. The blocks (or reps) are randomly assigned as explained from the documentation of \code{"gauch.soy"} data from \code{"agridat"}}
 \source{
 \href{https://cran.r-project.org/web/packages/agridat/index.html}{agridat}
 }

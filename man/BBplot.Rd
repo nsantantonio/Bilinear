@@ -4,17 +4,14 @@
 \alias{BBplot}
 \title{BBplot function}
 \usage{
-BBplot(bilinearObject, f = 0.5, pdf.filename = NULL, nPC = NULL,
-  plottitle = "Biplot", biplot3D = FALSE, outer.box = TRUE,
-  internal.axes = FALSE, scaled = TRUE, decorateGGE = FALSE,
-  Gnames = TRUE)
+BBplot(bilinearObject, f = 0.5, nPC = NULL, plottitle = "Biplot",
+  biplot3D = FALSE, outer.box = TRUE, internal.axes = FALSE,
+  scaled = TRUE, decorateGGE = FALSE, Gnames = TRUE)
 }
 \arguments{
 \item{bilinearObject}{object from output of a call to biliner()}
 
 \item{f}{numeric. Scale parameter in (0, 1) for exponent on eigenvalues for weighting the genotype scores. Environment scores are weighted 1 - f. Default is 0.5}
-
-\item{pdf.filename}{name of pdf file to output. If NULL, biplot is printed to default device.}
 
 \item{nPC}{integer. Number of principal components to graph in the model. Default is 2 for a 2D biplot and 3 for a 3D biplot. If the number of significant PCs is less than the default and no argument is provided to 'nPC', the mean will be printed on the x axis, and the 1st (or 1st and 2nd for 3D biplot) PC will be printed on the remaining axis(es)}
 
@@ -33,22 +30,22 @@ BBplot(bilinearObject, f = 0.5, pdf.filename = NULL, nPC = NULL,
 \item{Gnames}{character vector of genotype names to be included on plot near respective points}
 }
 \description{
-This function makes biplots from a bilinear() object
+This function makes biplots from a bilinear() object, and is a wrapper for decorateBBplot.
 }
 \details{
 put some details here
 }
 \examples{
 
-data(soy)
-AMMIfit <- bilinear(x = soyShort)
+data(soyMeanMat)
+AMMIfit <- bilinear(x = soyMeanMat)
 AMMIplot(AMMIfit)
 AMMIplot(AMMIfit, "winner")
 AMMIplot(AMMIfit, "winner", color = "hotpink")
 AMMIplot(AMMIfit, c("linear", "winner"), color = c("hotpink", "darkorchid"))
 
-data(onterio)
-GGEfit <- bilinear(x = onterio, model = "GGE")
+data(ontario)
+GGEfit <- bilinear(x = ontario, model = "GGE")
 BBplot(GGEfit, decorateGGE = TRUE)
 
 }

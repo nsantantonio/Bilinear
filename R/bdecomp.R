@@ -14,8 +14,8 @@
 #' nu: degrees of freedom
 #' 
 #' @examples
-#' data(soy)
-#' bdecomp(soyMeansMat, "AMMI")
+#' data(soyMeanMat)
+#' bdecomp(soyMeanMat, "AMMI")
 #' @export
 
 bdecomp <- function(Y, model) {

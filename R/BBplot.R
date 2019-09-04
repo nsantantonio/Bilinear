@@ -1,10 +1,9 @@
 #' BBplot function
 #'
-#' This function makes biplots from a bilinear() object  
+#' This function makes biplots from a bilinear() object, and is a wrapper for decorateBBplot.
 #' 
 #' @param bilinearObject object from output of a call to biliner()
 #' @param f numeric. Scale parameter in (0, 1) for exponent on eigenvalues for weighting the genotype scores. Environment scores are weighted 1 - f. Default is 0.5 
-#' @param pdf.filename name of pdf file to output. If NULL, biplot is printed to default device.
 #' @param nPC integer. Number of principal components to graph in the model. Default is 2 for a 2D biplot and 3 for a 3D biplot. If the number of significant PCs is less than the default and no argument is provided to 'nPC', the mean will be printed on the x axis, and the 1st (or 1st and 2nd for 3D biplot) PC will be printed on the remaining axis(es)
 #' @param plottitle character. Title for biplot.
 #' @param biplot3D logical. Should a 3dimensional 
@@ -18,20 +17,21 @@
 #'
 #' @examples
 #' 
-#' data(soy)
-#' AMMIfit <- bilinear(x = soyShort)
+#' data(soyMeanMat)
+#' AMMIfit <- bilinear(x = soyMeanMat)
 #' AMMIplot(AMMIfit)
 #' AMMIplot(AMMIfit, "winner")
 #' AMMIplot(AMMIfit, "winner", color = "hotpink")
 #' AMMIplot(AMMIfit, c("linear", "winner"), color = c("hotpink", "darkorchid"))
 #' 
-#' data(onterio)
-#' GGEfit <- bilinear(x = onterio, model = "GGE")
+#' data(ontario)
+#' GGEfit <- bilinear(x = ontario, model = "GGE")
 #' BBplot(GGEfit, decorateGGE = TRUE)
 #'
 #' @keywords AMMI, GGE, biplot
+#' @importFrom utils installed.packages
 #' @export
-BBplot<-function(bilinearObject, f = 0.5, pdf.filename=NULL, nPC=NULL, plottitle="Biplot", biplot3D=FALSE, outer.box=TRUE, internal.axes=FALSE, scaled=TRUE, decorateGGE=FALSE, Gnames=TRUE){
+BBplot<-function(bilinearObject, f = 0.5, nPC=NULL, plottitle="Biplot", biplot3D=FALSE, outer.box=TRUE, internal.axes=FALSE, scaled=TRUE, decorateGGE=FALSE, Gnames=TRUE){
 	# many ideas for these plots from:  http://www.sthda.com/english/wiki/a-complete-guide-to-3d-visualization-device-system-in-r-r-software-and-data-visualization
 
 	Edecomp <- bilinearObject$svdE
@@ -76,9 +76,10 @@ Caution should be taken when evaluating the following biplot.")}
 	if(biplot3D){
 		list.of.packages <- c("rgl")
 		new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-		if(length(new.packages)) {install.packages(new.packages)}
+		if(length(new.packages)) stop("Please install rgl to make 3D biplots: install.packages('rgl')")
+		# if (!requireNamespace("rgl", quietly = TRUE)) stop("Please install rgl to make 3D biplots: install.packages('rgl')") # use this!
 		
-		packages.required<-c(biplot3D)
+		packages.required <- c(biplot3D)
 		lapply(list.of.packages[packages.required], require, character.only = TRUE)
 
 
@@ -89,17 +90,17 @@ Caution should be taken when evaluating the following biplot.")}
 			xlim <- lim(x)
 			ylim <- lim(y)
 			zlim <- lim(z)
-			rgl.lines(xlim, c(0, 0), c(0, 0), color = axis.col)
-			rgl.lines(c(0, 0), ylim, c(0, 0), color = axis.col)
-			rgl.lines(c(0, 0), c(0, 0), zlim, color = axis.col)
+			rgl::rgl.lines(xlim, c(0, 0), c(0, 0), color = axis.col)
+			rgl::rgl.lines(c(0, 0), ylim, c(0, 0), color = axis.col)
+			rgl::rgl.lines(c(0, 0), c(0, 0), zlim, color = axis.col)
 			  
 			axes <- rbind(c(xlim[2], 0, 0), c(0, ylim[2], 0), c(0, 0, zlim[2]))
-			rgl.points(axes, color = axis.col, size = 3)
+			rgl::rgl.points(axes, color = axis.col, size = 3)
 			  
-			rgl.texts(axes, text = c(xlab, ylab, zlab), color = axis.col, adj = c(0.5, -0.8), size = 2)
+			rgl::rgl.texts(axes, text = c(xlab, ylab, zlab), color = axis.col, adj = c(0.5, -0.8), size = 2)
 
 			if(show.bbox){
-				rgl.bbox(color=c(bbox.col[1],bbox.col[2]), alpha = 0.5, emission=bbox.col[1], 
+				rgl::rgl.bbox(color=c(bbox.col[1],bbox.col[2]), alpha = 0.5, emission=bbox.col[1], 
 			          specular=bbox.col[1], shininess=5, xlen = 3, ylen = 3, zlen = 3) 
 			  }
 		}
@@ -107,13 +108,13 @@ Caution should be taken when evaluating the following biplot.")}
 
 	if(biplot3D){
 
-		list_of_packages <- c("rgl")
-		new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[, "Package"])]
+		# list_of_packages <- c("rgl")
+		# new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[, "Package"])]
 
-		if(length(new_packages)){
-			cat("Additional Packages required to make 3D biplot:\n",list_of_packages, "\nDo you want to install them?\n")	
-			install.packages(new_packages)
-		}
+		# if(length(new_packages)){
+		# 	cat("Additional Packages required to make 3D biplot:\n",list_of_packages, "\nDo you want to install them?\n")	
+		# 	install.packages(new_packages)
+		# }
 		if (nPC >= 3 & M >= 3){
 			Gscores <- Edecomp$u[,(nPC-2):nPC] %*% diag(Lambda[(nPC-2):nPC]^(f))
 			rownames(Gscores)<-names(Geffect)
@@ -206,9 +207,7 @@ Caution should be taken when evaluating the following biplot.")}
 			axes.names <- paste(PCnames, " ", percExpl[(nPC-1):nPC], "%", sep="")
 			names(axes.names) <- c("labx","laby")
 		}
-		if(!is.null(pdf.filename)){pdf(pdf.filename)}
-		sect <- decorateBBplot(Gscores = Gscores, Escores = Escores, Eeffect = Eeffect, axes.names = axes.names, decorate = decorateGGE, scaledplot = scaled, Gnames=Gnames)
-		if(!is.null(pdf.filename)){dev.off()}
+		sect <- decorateBBplot(Gscores = Gscores, Escores = Escores, Eeffect = Eeffect, axes.names = axes.names, decorate = decorateGGE, scaledPlot = scaled, Gnames=Gnames)
 		return(invisible(sect))
 	}
 }

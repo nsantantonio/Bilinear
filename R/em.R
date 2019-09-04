@@ -10,7 +10,8 @@
 #' @param fast logical or integer. If false or 0, k will be deterined at each iteration (slow). If fast is non-zero, k will be estimated each iteration <= max(2, fast), and the last value of k will be used for remaining iterations. . 
 #' @param Ytrue  Same as Y but with known, non-mising values. This allows the user to evaluate the accuracy of imputation.
 #' @param plotMSE logical. Should the mean square error (MSE) be plotted?.
-#' @param verbose logical. Should details e printed?
+#' @param verbose logical. Should details be printed?
+#' @param ... Additional arguments.
 #' @return Matrix with missing cells replaced by imputed values. 
 #' @details
 #' 
@@ -25,7 +26,7 @@
 #' If 'verbose' is true, details will be printed to stdout.
 #' 
 #' @examples
-#' data(soy)
+#' data(soyMeanMat)
 #' nMiss <- 10 
 #' Ytrue <- soyMeanMat
 #' Y <- soyMeanMat
@@ -35,7 +36,9 @@
 #' em(Y, model = "AMMI", tol = 1e-5, k = 2, maxiter = 20, Ytrue = Ytrue, plotMSE = TRUE)
 #' em(Y, model = "AMMI", tol = 1e-5, fast = FALSE, maxiter = 20, Ytrue = Ytrue, plotMSE = TRUE)
 #' em(Y, model = "AMMI", tol = 1e-5, fast = 2, maxiter = 20, Ytrue = Ytrue, plotMSE = TRUE)
+#' @importFrom stats sd
 #' @export
+
 
 em <- function(Y, model, tol = 1e-4, maxiter = 100, k = NULL, fast = TRUE, Ytrue = NULL, plotMSE = FALSE, verbose = FALSE, ...){
 	if(!is.null(Ytrue)){

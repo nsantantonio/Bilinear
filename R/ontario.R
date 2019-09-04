@@ -16,8 +16,7 @@
 #' GGE biplot vs. AMMI analysis of genotype-by-environment data. Crop Science, 47(2), pp.643-653.
 #' (\href{https://dl.sciencesocieties.org/publications/cs/abstracts/47/2/643}{Crop Science})
 #'
-#' @source \href{https://dl.sciencesocieties.org/publications/cs/abstracts/47/2/643}{Yan et. al (2007) Crop Science}
-#'
 #' @examples
 #' data(ontario)
+#' print(ontario)
 NULL

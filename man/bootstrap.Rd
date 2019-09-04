@@ -16,9 +16,19 @@ bootstrap(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full",
 
 \item{Edecomp}{svd() object from singular value decomposition of the table of residuals (thetaPlusR)}
 
+\item{M}{integer. maximum number of PCs.}
+
+\item{B}{integer. Number of bootstraps to be performed.}
+
+\item{model}{bilinear model to be fit. Arguments can be "AMMI", "GGE", "SREG", "EGE", "GREG". "GGE" and "SREG" are equivalent, as are "EGE" and "GREG".}
+
 \item{bootMethod}{character. Method for bootstrap sampling. Can be "full" or "simple", default is "full".}
 
 \item{Theta_k}{Theta the reduced dimension table can be provided directly. useful for ??}
+
+\item{verbose}{logical. Should details be printed?}
+
+\item{...}{Additional arguments.}
 }
 \value{
 p-values for 1 to K principal components

@@ -45,6 +45,8 @@ Alternatively a data.frame can be provided in long format, with factor and value
 \item{override3col}{logical. Overrides the 3 column numeric warning when a matrix of 3 coulmns is provided. Most users will not need to turn this off, unless the number of environments is 3 and a table of cell means are provided. Default is FALSE.}
 
 \item{verbose}{logical. When TRUE, details from nalysis are printed.}
+
+\item{...}{Additional arguments.}
 }
 \value{
 The bilinear fit object and tests for significant dimensions.
@@ -71,7 +73,7 @@ If data is provided in long format and study is replicated within environment, c
 }
 \examples{
 data(soy)
-print(soyMeansMat)
+print(soyMeanMat)
 
 AMMIfit <- bilinear(x = soyMeanMat)
 AMMIfit[c("mu", "Eeffect", "Geffect")] 
@@ -131,7 +133,7 @@ bilinear(x = matY, model = "AMMI", B = 10000, nCore = 2)
 names(dfY) <- c("geno", "env", "trait") #change names dfY
 print(head(dfY, 20))
 bilinear(x = dfY, G = "geno", E = "env", y = "trait", model = "AMMI", B = 10000, nCore = 2)
-data can be also supplied directly as vectors to the 'G', 'E' and 'y' arguments
+# data can be also supplied directly as vectors to the 'G', 'E' and 'y' arguments
 Gvec <- dfY$geno
 Evec <- dfY$env
 yvec <- dfY$trait

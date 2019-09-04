@@ -9,8 +9,6 @@
 #'
 #' @format 
 #' soy An object of class \code{"data.frame"} containing plot values. The blocks (or reps) are randomly assigned as explained from the documentation of \code{"gauch.soy"} data from \code{"agridat"}
-#' soyMeanDf An object of class \code{"data.frame"} containing cell means (\code{"y"}) of genotype (\code{"G"}) within environment (\code{"E"})
-#' soyMeanMat An object of class \code{"matrix"} containing cell means of genotypes on rows and environments on columns
 #' 
 #' @keywords soy
 #'
@@ -25,4 +23,3 @@
 #' summary(soy)
 #' print(soy)
 NULL
-# NEED TO CITE BOTH SOY AND SOYMEANS!!!!!!!

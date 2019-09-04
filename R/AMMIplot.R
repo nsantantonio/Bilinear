@@ -7,23 +7,25 @@
 #' @param color character vector of length 2 containing colors for the plots. The first specifies the genotype color and the second the environment color. If only one color is specified, only genotypes will be colored
 #' @param PC integer. Principal component to plot. The default is 1
 #' @param f numeric. Scale parameter in (0, 1) for exponent on eigenvalues for weighting the genotype scores. Environment scores are weighted 1 - f. Default is 0.5 
-#' @param pdf.filename name of pdf file to output. 
+#' @param ... Additional arguments.
 #' @details
 #' Many arguments can be passed on to plot() through (...)
 #'
 #' @examples
 #' 
-#' data(soy)
-#' AMMIfit <- bilinear(x = soyShort)
+#' data(soyMeanMat)
+#' AMMIfit <- bilinear(x = soyMeanMat)
 #' AMMIplot(AMMIfit)
 #' AMMIplot(AMMIfit, "winner")
 #' AMMIplot(AMMIfit, "winner", color = "hotpink")
 #' AMMIplot(AMMIfit, c("linear", "winner"), color = c("hotpink", "darkorchid"))
 #' 
 #' @keywords AMMI
+#' @importFrom grDevices dev.off pdf
+#' @importFrom graphics abline par plot points text
 #' @export
 
-AMMIplot <- function(bilinearObject, plots = "linear", color = c("darkgreen", "darkblue"),  PC = 1, f = 0.5, pdf.filename = NULL, ...){
+AMMIplot <- function(bilinearObject, plots = "linear", color = c("darkgreen", "darkblue"),  PC = 1, f = 0.5, ...){
 
 	argumentChange <- function(defaultArgs, userArgs){
 		userArgs <- list(...)
@@ -88,8 +90,6 @@ AMMIplot <- function(bilinearObject, plots = "linear", color = c("darkgreen", "d
 		linPlotArgs <- argumentChange(list(main = "Linear AMMI plot", ylim = ylimits, xlim = xlimits, yaxs="i", pch = 17, 
 							ylab = "Nominal", xlab = paste0("Environment PC", PC), cex = 1.5), list(...))
 
-		if(!is.null(pdf.filename)) pdf(paste0("linear", pdf.filename))
-
 		do.call(plot, c(list(x = Escores[,paste0("PC", PC)], y = rep(ylimits[1], dim(Escores)[1])), linPlotArgs))
 
 		# linLineArgs <- list(col = linecol[i], lwd = linewd[i])
@@ -100,7 +100,6 @@ AMMIplot <- function(bilinearObject, plots = "linear", color = c("darkgreen", "d
 			abline(Gintercept[i], Gscores[i,paste0("PC", PC)], col = linecol[i], lwd = linewd[i])
 		}
 		text(labelx, labely, labels = winner, col = color[1])
-		if(!is.null(pdf.filename)) dev.off()
 	}
 
 	if("winner" %in% plots){
@@ -112,8 +111,6 @@ AMMIplot <- function(bilinearObject, plots = "linear", color = c("darkgreen", "d
 		xlimits <- range(Eeffect) * 1.1 + mu
 		ylimits <- range(Escores[, paste0("PC", PC)]) * 1.1
 		
-		if(!is.null(pdf.filename)) pdf(paste0("winners", pdf.filename))
-		
 		winPLotArgs <- argumentChange(list(xlim = xlimits, ylim = ylimits, main = "Winner AMMI plot", 
 										   ylab = paste0("Environment PC", PC, "Score"), xlab = "Environmental mean", 
 										   pch = 16, col = color[2]), list(...))
@@ -124,8 +121,8 @@ AMMIplot <- function(bilinearObject, plots = "linear", color = c("darkgreen", "d
 		winPointArgs <- argumentChange(list(pch = 16, col = color[1]), list(...))
 		do.call(points, c(list(x = mu + Geffect [names(Geffect) %in% winner], y = Gscores[names(Geffect) %in% winner, paste0("PC", PC)]), winPointArgs))
 		text(mu + Geffect [names(Geffect) %in% winner] * 1.1, Gscores[names(Geffect) %in% winner,paste0("PC", PC)] * 1.1, labels = rownames(Gscores)[names(Geffect) %in% winner], col = color[1])
-		if(!is.null(pdf.filename)) dev.off()
 	}
+	if(nplots > 1) par(mfrow = c(1, 1))
 }
 
 

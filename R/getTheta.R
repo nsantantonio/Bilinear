@@ -10,9 +10,9 @@
 #' Theta: matrix of dimension k, from decomposition of GxE residual 
 #' 
 #' @examples
-#' data(soy)
-#' Edecomp <- bdecomp(soyMeansMat, "AMMI")
-#' getTheta(Edecomp, 2)
+#' data(soyMeanMat)
+#' decomp <- bdecomp(soyMeanMat, "AMMI")
+#' getTheta(k = 2, decomp$Edecomp)
 #'
 #' @export
 
@@ -24,7 +24,7 @@ getTheta <- function(k, Edecomp){
 	} else if(k == 1) {
 		Edecomp$d[1] * tcrossprod(Edecomp$u[,1], Edecomp$v[,1])
 	} else {
-		Edecomp$u[, 1:k] %*% tcrossprod(diag(Edecomp$d[1:k]), Edecomp$v[, 1:k])
+		Edecomp$u[, 1:k, drop = FALSE] %*% tcrossprod(diag(Edecomp$d[1:k]), Edecomp$v[, 1:k])
 	}
 	Theta
 }

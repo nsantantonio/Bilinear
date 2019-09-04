@@ -5,9 +5,6 @@
 \alias{ontario}
 \title{Onterio wheat data containing 18 genotypes evaluated in 9 environments from Yan et al. (2000)}
 \format{#' An object of class \code{"matrix"} containing cell means of genotypes on rows and environments on columns}
-\source{
-\href{https://dl.sciencesocieties.org/publications/cs/abstracts/47/2/643}{Yan et. al (2007) Crop Science}
-}
 \usage{
 data(ontario)
 }
@@ -16,6 +13,7 @@ Onterio wheat data containing 18 genotypes evaluated in 9 environments from Yan 
 }
 \examples{
 data(ontario)
+print(ontario)
 }
 \references{
 Yan, W., Hunt, L. A., Sheng, Q., & Szlavnics, Z. (2000).

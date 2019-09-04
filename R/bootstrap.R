@@ -6,8 +6,13 @@
 #' @param D integer, Maximum right dimensions 
 #' @param Dtilde integer. Maximum right dimensions 
 #' @param Edecomp svd() object from singular value decomposition of the table of residuals (thetaPlusR)
+#' @param M integer. maximum number of PCs.
+#' @param B integer. Number of bootstraps to be performed.
+#' @param model bilinear model to be fit. Arguments can be "AMMI", "GGE", "SREG", "EGE", "GREG". "GGE" and "SREG" are equivalent, as are "EGE" and "GREG".
 #' @param bootMethod character. Method for bootstrap sampling. Can be "full" or "simple", default is "full".
 #' @param Theta_k Theta the reduced dimension table can be provided directly. useful for ??
+#' @param verbose logical. Should details be printed?
+#' @param ... Additional arguments.
 #' @return p-values for 1 to K principal components
 #' @details
 #' 
@@ -15,6 +20,7 @@
 #' statistic calculated from the Kth principal component. See Forkman and Piepho (2014) Biometrics, 70(3) for specifics.
 #'
 #' @keywords parametric bootstrap
+#' @importFrom stats rnorm
 #' @export
 bootstrap <- function(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full", Theta_k = NULL, verbose = FALSE, ...){
 	if (!bootMethod %in% c("full", "simple")) {stop("Please specify the parametric bootstrap method as 'full' or 'simple'.")}
@@ -47,7 +53,7 @@ bootstrap <- function(K, D, Dtilde, Edecomp, M, B, model, bootMethod = "full", T
 				Theta_K <- Edecomp$u[, 1:K] %*% tcrossprod(diag(Lambda[1:K]), Edecomp$v[, 1:K])	
 			}
 		} else {
-			Theta_K <- Theta_k[[paste0("PC", k)]]
+			Theta_K <- Theta_k[[paste0("PC", K)]]
 		}
 	}
 

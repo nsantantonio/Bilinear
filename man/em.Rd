@@ -24,7 +24,9 @@ em(Y, model, tol = 1e-04, maxiter = 100, k = NULL, fast = TRUE,
 
 \item{plotMSE}{logical. Should the mean square error (MSE) be plotted?.}
 
-\item{verbose}{logical. Should details e printed?}
+\item{verbose}{logical. Should details be printed?}
+
+\item{...}{Additional arguments.}
 }
 \value{
 Matrix with missing cells replaced by imputed values.
@@ -44,7 +46,7 @@ If a complete matrix of true values is provided, the algorithm will calculate th
 If 'verbose' is true, details will be printed to stdout.
 }
 \examples{
-data(soy)
+data(soyMeanMat)
 nMiss <- 10 
 Ytrue <- soyMeanMat
 Y <- soyMeanMat

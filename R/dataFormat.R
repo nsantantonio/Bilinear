@@ -13,6 +13,7 @@
 #' @param override3col logical. Overrides the 3 column numeric warning when a matrix of 3 coulmns is provided. Most users will not need to turn this off, unless the number of environments is 3 and a table of cell means are provided. Default is FALSE.
 #' @return formatted data frame for use inside bilinear()
 #' @keywords bilinear
+#' @importFrom stats anova as.formula dummy.coef lm
 #' @export
 dataFormat <- function(x, G, E, y, block, alpha, anyNullGEy, override3col){
 	meltName <- function(x, G, E, vName) {

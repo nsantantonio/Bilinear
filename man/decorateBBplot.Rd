@@ -5,7 +5,7 @@
 \title{decorateBBplot Function}
 \usage{
 decorateBBplot(Gscores, Escores, Eeffect, axes.names, decorate = TRUE,
-  scaledplot = TRUE, Gnames)
+  scaledPlot = TRUE, Gnames)
 }
 \arguments{
 \item{Gscores}{matrix of genotype scores}
@@ -14,13 +14,13 @@ decorateBBplot(Gscores, Escores, Eeffect, axes.names, decorate = TRUE,
 
 \item{Eeffect}{numeric vector environment effects(?)}
 
+\item{axes.names}{character vector of axis names}
+
 \item{decorate}{logical, indicates if the environment winenr panels should be colored}
 
-\item{Gnames}{names of genotypes to be printed, default is outer edge}
-
-\item{axis.names}{character vector of axis names}
-
 \item{scaledPlot}{logical, indicates if genotypes scores and escores shoudl be scaled to one another (how does f effect this?)}
+
+\item{Gnames}{names of genotypes to be printed, default is outer edge}
 }
 \value{
 list sectors
@@ -34,8 +34,8 @@ Colors are added to sectors containing genotypes if decorate = TRUE
 }
 \examples{
 
-data(onterio)
-GGEfit <- bilinear(x = onterio, model = "GGE")
+data(ontario)
+GGEfit <- bilinear(x = ontario, model = "GGE")
 BBplot(GGEfit, decorateGGE = TRUE)
 
 }

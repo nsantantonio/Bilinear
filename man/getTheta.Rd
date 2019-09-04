@@ -21,8 +21,8 @@ Calculate dimension reduction of kth degree
 Theta: matrix of dimension k, from decomposition of GxE residual
 }
 \examples{
-data(soy)
-Edecomp <- bdecomp(soyMeansMat, "AMMI")
-getTheta(Edecomp, 2)
+data(soyMeanMat)
+decomp <- bdecomp(soyMeanMat, "AMMI")
+getTheta(k = 2, decomp$Edecomp)
 
 }

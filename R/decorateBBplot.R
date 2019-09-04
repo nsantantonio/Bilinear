@@ -5,7 +5,7 @@
 #' @param Gscores matrix of genotype scores
 #' @param Escores matrix of environment scores
 #' @param Eeffect numeric vector environment effects(?)
-#' @param axis.names character vector of axis names
+#' @param axes.names character vector of axis names
 #' @param decorate logical, indicates if the environment winenr panels should be colored
 #' @param scaledPlot logical, indicates if genotypes scores and escores shoudl be scaled to one another (how does f effect this?)
 #' @param Gnames names of genotypes to be printed, default is outer edge
@@ -17,13 +17,16 @@
 #'
 #' @examples
 #' 
-#' data(onterio)
-#' GGEfit <- bilinear(x = onterio, model = "GGE")
+#' data(ontario)
+#' GGEfit <- bilinear(x = ontario, model = "GGE")
 #' BBplot(GGEfit, decorateGGE = TRUE)
 #'
 #' @keywords GGE 
+#' @importFrom grDevices chull colorRampPalette 
+#' @importFrom graphics axis lines plot points polygon segments text
+#' @importFrom stats aggregate
 #' @export
-decorateBBplot <- function(Gscores, Escores, Eeffect, axes.names, decorate = TRUE, scaledplot = TRUE, Gnames){
+decorateBBplot <- function(Gscores, Escores, Eeffect, axes.names, decorate = TRUE, scaledPlot = TRUE, Gnames){
 
 	lim2 <- function(x){c(min(x), max(x)) * 1.1}
 
@@ -59,7 +62,7 @@ decorateBBplot <- function(Gscores, Escores, Eeffect, axes.names, decorate = TRU
 		return(AxB * AxC >= 0 && CxB * CxA >=0)
 	}
 
-	if(scaledplot){
+	if(scaledPlot){
 		limy <- limx <- lim2(c(Gscores,Escores))
 	} else {
 		limx <- lim2(c(Gscores[,1], Escores[,1]))

@@ -5,7 +5,7 @@
 \title{AMMIplot function}
 \usage{
 AMMIplot(bilinearObject, plots = "linear", color = c("darkgreen",
-  "darkblue"), PC = 1, f = 0.5, pdf.filename = NULL, ...)
+  "darkblue"), PC = 1, f = 0.5, ...)
 }
 \arguments{
 \item{bilinearObject}{object from output of a call to biliner()}
@@ -18,7 +18,7 @@ AMMIplot(bilinearObject, plots = "linear", color = c("darkgreen",
 
 \item{f}{numeric. Scale parameter in (0, 1) for exponent on eigenvalues for weighting the genotype scores. Environment scores are weighted 1 - f. Default is 0.5}
 
-\item{pdf.filename}{name of pdf file to output.}
+\item{...}{Additional arguments.}
 }
 \description{
 This function will make linear and winner plots from a bilinear() object like Figure 2 and Figure 3 of Gauch & Zobel (1997).
@@ -28,8 +28,8 @@ Many arguments can be passed on to plot() through (...)
 }
 \examples{
 
-data(soy)
-AMMIfit <- bilinear(x = soyShort)
+data(soyMeanMat)
+AMMIfit <- bilinear(x = soyMeanMat)
 AMMIplot(AMMIfit)
 AMMIplot(AMMIfit, "winner")
 AMMIplot(AMMIfit, "winner", color = "hotpink")
