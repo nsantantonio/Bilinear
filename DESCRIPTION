@@ -1,6 +1,6 @@
 Package: Bilinear
 Title: Fits bilinear models for multi environment trial data
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: person("Nicholas", "Santantonio", email = "ns722@cornell.edu", role = c("aut", "cre"))
 Description: This package contains functions to fit bilinear models with an emphasis on multi environment trials common in plant breeding applications. The primary function is `bilinear()` which fits two way factorial ANOVA type models, and attempts to separate two way interaction signal from noise by signular value decomposition of the two way table of cell means. This can be centered from one dimension, such as in GGE (aka Sites Regression or SREG), or both dimensions, Additive Main effects and Multiplicative Interaction (AMMI). Missing genotype/environment combinations are imputed using an expectation maximization algorithm. Two F-tests and a parametric bootstrap test (which does not require replicated data) are implemented for determination of the number of significant interaction signal dimensions. Other functions are available for creating biplots, and "winner" plots from the output of the `bilinear() function`. 
 Depends: R (>= 3.0.1)
