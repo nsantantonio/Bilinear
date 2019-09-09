@@ -59,7 +59,7 @@ This software is in development and bugs may (almost certainly) be present. I ha
 
 ## Known issues to be addressed
 
-* genotype and environment names CANNOT be integers, and must contain at least one non-numeric character (it should also work if they are of class ```character```, but I have yet to test this). This will be fixed in the very near future when I get a few spare minutes to look into it. 
+<!--* genotype and environment names CANNOT be integers, and must contain at least one non-numeric character (it should also work if they are of class ```character```, but I have yet to test this). This will be fixed in the very near future when I get a few spare minutes to look into it. -->
 
 * The plotting functions will be updated to allow more flexibility to the user to add certain line names, change colors etc.
 <!-- * the dataframe needs to be sorted by environment and then genotype in order to print the proper mean square values for the PCs. This does not effect the test, but it does make an erroneous Mean Square values for the PCs.  -->
