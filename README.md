@@ -28,7 +28,7 @@ I highly reccomend that you do not download these files directly! Follow the ins
 
 ### Microsoft R open
 
-I have had issues using devtools with Microsoft R open <https://mran.microsoft.com/open>. I have supplied a source tarball, ```Bilinear_0.2.1.tar.gz``` for those who use MRAN, which can be found in the [v0.2.1 relase](https://github.com/nsantantonio/Bilinear/releases/tag/v0.2.1). You can also just clone the repo and build on your own machine. 
+I have had issues using devtools with Microsoft R open <https://mran.microsoft.com/open>. I have supplied a source tarball, ```Bilinear_0.2.1.tar.gz``` for those who use MRAN, which can be found in the [v0.2.1 release](https://github.com/nsantantonio/Bilinear/releases/tag/v0.2.1). You can also just clone the repo and build on your own machine. 
 
 ```git clone https://github.com/nsantantonio/Bilinear```
 
