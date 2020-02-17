@@ -90,6 +90,8 @@ for the 'block' effect.\n"
 			DF <- x
 		} else if (is.matrix(x)){
 			if (is.numeric(x) & allNullGEy) {
+				if(is.null(rownames(x))) rownames(x) <- paste0("G", 1:nrow(x))
+				if(is.null(colnames(x))) colnames(x) <- paste0("E", 1:ncol(x))
 				DF <- meltName(x, G = "G", E = "E", vName = "y")
 				return(list(Y = x, DF = DF, isUnRep = TRUE, sigmasq = NULL, repPerG = 1)) #, anyMissCells = anyMissCells))
 			} else if (is.numeric(x) & !allNullGEy){
