@@ -142,7 +142,7 @@ for the 'block' effect.\n"
 	} else {
 		if (isRCBD){	
 			fit <- lm(as.formula(paste0(y," ~ ", E, " + ", block , ":", E, " + ", G, " + ", G, ":", E)), data = DF)
-			pvalBlock <- anova(fit)["E:block","Pr(>F)"]
+			pvalBlock <- anova(fit)[paste0(E, ":", block),"Pr(>F)"]
 			blockSig <- TRUE
 			if (length(alpha) > 1){
 				alphaBlock <- alpha[2] 
